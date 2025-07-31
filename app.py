@@ -185,18 +185,18 @@ fig = px.bar(
     title=f"{store} 月別総売上（前年 vs 今年）",
     labels={"売上":"金額 (万円)"}
 )
-fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
-#fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
-st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
 # ① ここで軸タイプを明示                          ▼これを追加
 fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
+
+fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
+fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
 
 ymax = sales_plot["売上"].max()
 fig.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
 for i, t in enumerate(fig.data):
     st.write(f"trace {i}", dict(x=t.x, y=t.y[:10]))  # y を一部だけ表示
 st.plotly_chart(fig, use_container_width=True)
-
+st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
