@@ -43,8 +43,13 @@ def load_files(files):
         except ValueError as e:
             st.warning(str(e))
             continue
-
+        NUMERIC_COLS = ["総売上", "総来院数"]   # ← 集計する数値列すべて
         df = pd.read_excel(f, sheet_name="売上管理", engine="openpyxl",header=4)
+
+        # 数値列を float へ統一 (変換失敗は NaN → 0)
+        for col in NUMERIC_COLS:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
         try:
             year, month = infer_year_month(df)
