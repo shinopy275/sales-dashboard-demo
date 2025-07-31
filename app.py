@@ -202,8 +202,7 @@ st.dataframe(ss_full)
 st.write("▼ sales_plot（melt + 単位変換後）")
 st.dataframe(sales_plot)
 
-# y 軸レンジは一旦外す
-fig.update_yaxes(range=None)
+
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
