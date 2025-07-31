@@ -233,7 +233,7 @@ visit_plot[["月","年度"]] = visit_plot[["月","年度"]].astype(str)
 
 fig2 = px.bar(
     visit_plot, x="月", y="来院数",
-    color="年度", barmode="group",
+    color="年度",
     title=f"{store} 月別来院数（前年 vs 今年）",
     labels={"来院数":"人数", "月":"月", "年度":"年"}
 )
