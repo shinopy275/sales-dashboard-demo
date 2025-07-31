@@ -176,7 +176,7 @@ sales_plot = (
 sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
 sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
 
-#sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
+sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
