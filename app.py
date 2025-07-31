@@ -189,9 +189,12 @@ fig.update_xaxes(type="category",
                  categoryorder="array",
                  categoryarray=[str(i) for i in range(1, 13)])
 
-fig.update_traces(width=0.35)
-fig.update_yaxes(tickformat=",.0f",
-                 range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
+#fig.update_traces(width=0.35)
+# ★ ここを変更：幅を「px」で絶対指定
+fig.update_traces(width=0.6)               # 0.6 は “x=1” 幅に対する比率
+                                           # もっと太くするなら 0.8 など
+fig.update_yaxes(tickformat=",.0f", rangemode="tozero")  # 自動レンジ
+#fig.update_yaxes(tickformat=",.0f", range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
 
 st.plotly_chart(fig, use_container_width=True)
 # ──────────────────────────────────────────────
