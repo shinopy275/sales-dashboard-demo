@@ -21,22 +21,6 @@ st.dataframe(df)
 # ──────────────────────────────
 # 2. 棒グラフ
 # ──────────────────────────────
-fig = px.bar(
-    df,
-    x="月",
-    y="売上",
-    color="年度",
-    barmode="group",
-    labels={"売上": "金額 (万円)"},
-    category_orders={"月": ["1", "2"]},
-    title="月別総売上（固定データ 2024 vs 2025）"
-)
-fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
-fig.update_layout(bargap=0.15, bargroupgap=0.05)
-
-# キーを付け、一度だけ描画
-st.plotly_chart(fig, use_container_width=True, key="test-chart")
-
 
 st.set_page_config(layout="centered")
 st.title("💡 軸フォーマットを完全に外した検証")
