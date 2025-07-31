@@ -176,7 +176,7 @@ sales_plot = (
 sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
 sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
 
-sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
+#sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
@@ -187,7 +187,7 @@ fig = px.bar(
 
 fig.update_xaxes(type="category",
                  categoryorder="array",
-                 categoryarray=[str(i) for i in range(1, 13)])
+                 categoryarray=[i for i in range(1, 13)])
 
 #fig.update_traces(width=0.35)
 # ★ ここを変更：幅を「px」で絶対指定
