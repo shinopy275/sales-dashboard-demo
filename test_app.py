@@ -36,3 +36,21 @@ fig.update_layout(bargap=0.15, bargroupgap=0.05)
 
 # キーを付け、一度だけ描画
 st.plotly_chart(fig, use_container_width=True, key="test-chart")
+
+
+st.set_page_config(layout="centered")
+st.title("💡 軸フォーマットを完全に外した検証")
+
+df = pd.DataFrame({
+    "月": ["1","2","1","2"],
+    "年度": ["2024","2024","2025","2025"],
+    "売上": [252, 326, 315, 274]
+})
+
+fig = px.bar(
+    df, x="月", y="売上",
+    color="年度", barmode="group",
+    # ★ 軸設定をいっさい指定しない ★
+)
+
+st.plotly_chart(fig, key="plain")
