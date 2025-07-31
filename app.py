@@ -274,3 +274,38 @@ st.plotly_chart(fig2, use_container_width=True)
 # ---------- 5.5 デバッグ用表示（任意） ----------
 with st.expander("📄 月別比較データ（店舗）"):
     st.dataframe(ss_full, use_container_width=True)
+
+# ──────────────────────────────
+# 6. デモ用：前年同月比較の棒グラフ（ダミー値）
+# ※ 実データではなく “適当なサンプル値” で描画します
+# ──────────────────────────────
+import numpy as np
+
+st.markdown("---")
+st.subheader("🎲 デモ：前年同月比較 (サンプルデータ)")
+
+# ① サンプルデータ生成
+np.random.seed(42)                # 乱数固定
+months = list(range(1, 13))
+sales_2024 = np.random.randint(200, 310, 12)                 # 200〜309 万円
+sales_2025 = (sales_2024 * np.random.uniform(0.9, 1.2, 12)).astype(int)
+
+demo_df = pd.DataFrame({
+    "月": months * 2,
+    "年": ["2024年"] * 12 + ["2025年"] * 12,
+    "売上": np.concatenate([sales_2024, sales_2025])
+})
+
+# ② Plotly で棒グラフ (barmode="group")
+demo_fig = px.bar(
+    demo_df, x="月", y="売上",
+    color="年", barmode="group",
+    title="前年同月比較 ─ 月別総売上（サンプル）",
+    labels={"売上": "金額 (万円)"}
+)
+demo_fig.update_xaxes(type="category", categoryorder="array",
+                      categoryarray=[str(i) for i in months])
+demo_fig.update_traces(width=0.45)
+demo_fig.update_yaxes(tickformat=",.0f")
+
+st.plotly_chart(demo_fig, use_container_width=True)
