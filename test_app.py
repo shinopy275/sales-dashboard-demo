@@ -22,6 +22,8 @@ st.dataframe(df)
 # 2. 棒グラフ
 # ──────────────────────────────
 
+import streamlit as st, pandas as pd, plotly.express as px
+
 st.set_page_config(layout="centered")
 st.title("💡 軸フォーマットを完全に外した検証")
 
@@ -38,3 +40,4 @@ fig = px.bar(
 )
 
 st.plotly_chart(fig, key="plain")
+
