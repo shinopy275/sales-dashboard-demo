@@ -219,29 +219,4 @@ st.plotly_chart(fig2, use_container_width=True)
 # ---------- 5.5 デバッグ用表示（任意） ----------
 with st.expander("📄 月別比較データ（店舗）"):
     st.dataframe(ss_full, use_container_width=True)
-import plotly.express as px
-import pandas as pd
 
-# ---------- melt 後のデータ ----------
-sales_plot = pd.DataFrame({
-    "月":   ["1","2","1","2"],
-    "年度": ["2024","2024","2025","2025"],
-    "売上": [3_151_794, 2_519_404, 2_739_606, 3_262_866]   # ← 円
-})
-
-# ① 円 → 万円、直後に数値型を固定しておく
-sales_plot["売上"] = pd.to_numeric(sales_plot["売上"]) / 10_000   # → float64 保持
-
-# ② グラフ
-fig = px.bar(
-    sales_plot, x="月", y="売上",
-    color="年度", barmode="group",
-    labels={"売上":"金額 (万円)", "月":"月", "年度":"年"},
-    category_orders={"月": [str(i) for i in range(1,13)]}
-)
-
-fig.update_xaxes(type="category")
-fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # 軸で丸め表示
-fig.update_traces(width=0.6)
-
-fig.show()
