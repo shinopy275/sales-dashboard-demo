@@ -312,5 +312,6 @@ demo_fig.update_xaxes(
 )
 demo_fig.update_traces(width=0.45)
 demo_fig.update_yaxes(tickformat=",.0f")
-
+demo_fig.update_layout(margin=dict(l=60))              # 左マージンを広げる
+demo_fig.update_xaxes(dtick=1)                         # 1,2,3…すべての目盛りを表示
 st.plotly_chart(demo_fig, use_container_width=True)
