@@ -216,7 +216,7 @@ fig2.update_xaxes(type="category",
                   categoryarray=[str(i) for i in range(1, 13)])
 fig2.update_traces(width=0.35)
 fig2.update_yaxes(tickformat=",")
-st.plotly_chart(fig2, use_container_width=True)
+st.plotly_chart(fig2, use_container_width=True, key="visit")
 
 # ---------- 5.5 デバッグ用表示（任意） ----------
 with st.expander("📄 月別比較データ（店舗）"):
