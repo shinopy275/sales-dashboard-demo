@@ -148,12 +148,13 @@ visit_rate = ((kpi_tot["総来院数_今年"] - kpi_tot["総来院数_前年"])
 total_sales = int(kpi_tot["総売上_今年"])
 total_visits = int(kpi_tot["総来院数_今年"])
 
-st.markdown(f"**累計総売上 (今年)**：{total_sales:,} 円")      ### ←追加
-st.markdown(f"**累計総来院数 (今年)**：{total_visits:,} 人")   ### ←追加
-
 c1, c2 = st.columns(2)
 c1.metric("売上 前年比(累計)",  f"{sales_rate} %")
 c2.metric("来院数 前年比(累計)", f"{visit_rate} %")
+
+c3,c4 = st.columns(2)
+c3.metric("売上 (今年)",f"{total_sales:,} 円")      ### ←追加
+c4.metric("来院数 (今年)",f"{total_visits:,} 人")   ### ←追加
 
 # ---------- 5.2 月フルリスト補完 ----------
 full_months = pd.DataFrame({"月": range(1, 13)})
