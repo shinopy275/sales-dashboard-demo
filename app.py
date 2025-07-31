@@ -191,6 +191,9 @@ fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
 fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
 fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
 
+ymax = sales_plot["売上"].max()
+fig.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
+
 st.plotly_chart(fig, use_container_width=True, key="sales")   # ★ key を付ける
 st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
 # ---------- 5.4 来院数グラフ ----------
