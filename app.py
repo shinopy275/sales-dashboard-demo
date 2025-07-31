@@ -174,7 +174,7 @@ sales_plot = (
 
 # ① 数値型保証 → ② 円→万円 → ③ ゼロ補完
 sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
-sales_plot["売上"] = sales_plot["売上"] 
+sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
 
 sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
