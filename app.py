@@ -166,23 +166,37 @@ ss_full = ss_full[mask]
 
 # ---------- 売上グラフ ----------
 sales_plot = (
-    ss_full.melt(id_vars="月",
-                 value_vars=["総売上_前年", "総売上_今年"],
-                 var_name="年度", value_name="売上")
-      .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
+    ss_full.melt(
+        id_vars="月",
+        value_vars=["総売上_前年", "総売上_今年"],
+        var_name="年度", value_name="売上"
+    )
+    .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
+    # ★ ここで “万単位に変換” と “型変換” を同時に行う
+    .assign(
+        売上=lambda d: pd.to_numeric(d["売上"], errors="coerce") / 10_000,
+        月   =lambda d: d["月"].astype(str),
+        年度 =lambda d: d["年度"].astype(str)
+    )
 )
 
+st.write("▼ sales_plot dtypes")
+st.write(sales_plot.dtypes)
+
 # 売上・月・年度 以外をいじらない
-sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce") / 10_000
-sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
+# sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce") / 10_000
+# sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
     color="年度", barmode="group",
     title=f"{store} 月別総売上（前年 vs 今年）",
-    labels={"売上":"金額 (万円)"}
+    labels={"売上": "金額 (万円)"}
 )
-fig.update_layout(bargap=0.15, bargroupgap=0.05)   # 幅調整はこちらで
+# 軸を numeric と明示しておくとさらに安全
+fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
+fig.update_layout(bargap=0.15, bargroupgap=0.05)
+
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("⚙️ デバッグ: 取り込み→変換途中まで")
