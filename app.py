@@ -187,6 +187,9 @@ fig = px.bar(
 )
 fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
 fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
+
+ymax = sales_plot["売上"].max()
+fig.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
 for i, t in enumerate(fig.data):
     st.write(f"trace {i}", dict(x=t.x, y=t.y[:10]))  # y を一部だけ表示
 st.plotly_chart(fig, use_container_width=True)
