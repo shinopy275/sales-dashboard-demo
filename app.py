@@ -285,10 +285,10 @@ st.markdown("---")
 st.subheader("🎲 デモ：前年同月比較 (サンプルデータ)")
 
 # ① サンプルデータ生成
-np.random.seed(42)                # 乱数固定
-months = list(range(1, 13))
-sales_2024 = np.random.randint(200, 310, 12)                 # 200〜309 万円
-sales_2025 = (sales_2024 * np.random.uniform(0.9, 1.2, 12)).astype(int)
+np.random.seed(42)
+months      = list(range(1, 13))
+sales_2024  = np.random.randint(200, 310, 12)
+sales_2025  = (sales_2024 * np.random.uniform(0.9, 1.2, 12)).astype(int)
 
 demo_df = pd.DataFrame({
     "月": months * 2,
@@ -296,15 +296,20 @@ demo_df = pd.DataFrame({
     "売上": np.concatenate([sales_2024, sales_2025])
 })
 
-# ② Plotly で棒グラフ (barmode="group")
+demo_df["月"] = demo_df["月"].astype(str)          # ← ★ポイント：文字列化
+
+# ② 棒グラフ
 demo_fig = px.bar(
     demo_df, x="月", y="売上",
     color="年", barmode="group",
     title="前年同月比較 ─ 月別総売上（サンプル）",
     labels={"売上": "金額 (万円)"}
 )
-demo_fig.update_xaxes(type="category", categoryorder="array",
-                      categoryarray=[str(i) for i in months])
+demo_fig.update_xaxes(
+    type="category",
+    categoryorder="array",
+    categoryarray=[str(i) for i in months]          # ← こちらも str で一致
+)
 demo_fig.update_traces(width=0.45)
 demo_fig.update_yaxes(tickformat=",.0f")
 
