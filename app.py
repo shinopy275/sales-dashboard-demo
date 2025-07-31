@@ -183,10 +183,6 @@ sales_plot = (
 st.write("▼ sales_plot dtypes")
 st.write(sales_plot.dtypes)
 
-# 売上・月・年度 以外をいじらない
- sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce") 
- sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
-
 fig = px.bar(
     sales_plot, x="月", y="売上",
     color="年度", barmode="group",
