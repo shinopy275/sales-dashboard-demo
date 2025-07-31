@@ -44,7 +44,7 @@ def load_files(files):
             st.warning(str(e))
             continue
 
-        df = pd.read_excel(f, sheet_name="売上管理", engine="openpyxl")
+        df = pd.read_excel(f, sheet_name="売上管理", engine="openpyxl",header=4)
 
         try:
             year, month = infer_year_month(df)
