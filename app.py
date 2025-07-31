@@ -276,42 +276,38 @@ with st.expander("📄 月別比較データ（店舗）"):
     st.dataframe(ss_full, use_container_width=True)
 
 # ──────────────────────────────
-# 6. デモ用：前年同月比較の棒グラフ（ダミー値）
-# ※ 実データではなく “適当なサンプル値” で描画します
+# 6. デモ：前年同月比較（1 円単位の棒グラフ）
 # ──────────────────────────────
-import numpy as np
-
-st.markdown("---")
-st.subheader("🎲 デモ：前年同月比較 (サンプルデータ)")
-
-# ① サンプルデータ生成
-np.random.seed(42)
-months      = list(range(1, 13))
-sales_2024  = np.random.randint(200, 310, 12)
-sales_2025  = (sales_2024 * np.random.uniform(0.9, 1.2, 12)).astype(int)
+np.random.seed(123)                             # 乱数固定
+months = list(range(1, 13))
+sales_2024 = np.random.randint(1, 11, 12)       # 1〜10 円
+sales_2025 = np.random.randint(1, 11, 12)
 
 demo_df = pd.DataFrame({
     "月": months * 2,
     "年": ["2024年"] * 12 + ["2025年"] * 12,
     "売上": np.concatenate([sales_2024, sales_2025])
 })
+demo_df["月"] = demo_df["月"].astype(str)
 
-demo_df["月"] = demo_df["月"].astype(str)          # ← ★ポイント：文字列化
-
-# ② 棒グラフ
 demo_fig = px.bar(
     demo_df, x="月", y="売上",
     color="年", barmode="group",
-    title="前年同月比較 ─ 月別総売上（サンプル）",
-    labels={"売上": "金額 (万円)"}
+    title="前年同月比較 ─ 月別総売上（デモ：1 円単位）",
+    labels={"売上": "金額 (円)"}
 )
-demo_fig.update_xaxes(
-    type="category",
-    categoryorder="array",
-    categoryarray=[str(i) for i in months]          # ← こちらも str で一致
-)
-demo_fig.update_traces(width=0.45)
-demo_fig.update_yaxes(tickformat=",.0f")
-demo_fig.update_layout(margin=dict(l=60))              # 左マージンを広げる
-demo_fig.update_xaxes(dtick=1)                         # 1,2,3…すべての目盛りを表示
+
+# 1 円ごとの目盛り & 左マージン確保
+demo_fig.update_yaxes(dtick=1, rangemode="tozero")
+demo_fig.update_xaxes(type="category",
+                      categoryorder="array",
+                      categoryarray=[str(i) for i in months])
+# 棒の幅・ラベル表示
+demo_fig.update_traces(width=0.45,
+                       text=demo_df["売上"],
+                       textposition="outside")
+
+# 左マージンを少し広げて 1 月棒を完全表示
+demo_fig.update_layout(margin=dict(l=60))
+
 st.plotly_chart(demo_fig, use_container_width=True)
