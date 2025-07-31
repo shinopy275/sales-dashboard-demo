@@ -174,13 +174,13 @@ sales_plot = (
 
 # ① 数値型保証 → ② 円→万円 → ③ ゼロ補完
 sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
-sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
+#sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
 
 sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
-    color="年度", barmode="group",
+    color="年度",
     title=f"{store} 月別総売上（前年 vs 今年）",
     labels={"売上":"金額 (万円)", "月":"月", "年度":"年"}
 )
