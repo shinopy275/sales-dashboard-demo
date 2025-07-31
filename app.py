@@ -161,7 +161,9 @@ plot_df = (
       # '年度' を 2024 / 2025 のような数字に置換
       .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
-
+plot_df["売上"]  = pd.to_numeric(plot_df["売上"], errors="coerce").fillna(0)
+plot_df["月"]    = plot_df["月"].astype(str)
+plot_df["年度"]  = plot_df["年度"].astype(str)   # ← ここがポイント
 fig = px.bar(plot_df,
              x="月", y="売上",
              color="年度", barmode="group",
@@ -180,7 +182,9 @@ plot_df2 = (
             var_name="年度", value_name="来院数")
       .replace({"総来院数_前年": prev_year, "総来院数_今年": latest_year})
 )
-
+plot_df2["来院数"]  = pd.to_numeric(plot_df2["来院数"], errors="coerce").fillna(0)
+plot_df2["月"]    = plot_df2["月"].astype(str)
+plot_df2["年度"]  = plot_df2["年度"].astype(str)   # ← ここがポイント
 st.plotly_chart(
     px.bar(plot_df2, x="月", y="来院数",
            color="年度", barmode="group",
