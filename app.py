@@ -185,9 +185,12 @@ fig = px.bar(
     labels={"売上":"金額 (万円)", "月":"月", "年度":"年"}
 )
 
-fig.update_xaxes(type="category",
-                 categoryorder="array",
-                 categoryarray=[i for i in range(1, 13)])
+fig.update_xaxes(
+    type="category",
+    categoryorder="array",
+    categoryarray=[str(i) for i in range(1, 13)]  # ← ★文字列にそろえる
+)
+# あるいは categoryarray 行ごと削除しても OK
 
 #fig.update_traces(width=0.35)
 # ★ ここを変更：幅を「px」で絶対指定
