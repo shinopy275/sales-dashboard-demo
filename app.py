@@ -195,7 +195,7 @@ ymax = sales_plot["売上"].max()
 fig_sales.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
 
 st.plotly_chart(fig_sales, use_container_width=True, key="sales-chart")
-st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
+st.write("axis type:", fig_sales.layout.yaxis.type)   # ← 'category' なら原因確定
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
