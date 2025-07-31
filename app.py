@@ -164,14 +164,18 @@ ss_full = full_months.merge(ss, on="月", how="left").fillna(0)
 mask = (ss_full["総売上_前年"] != 0) | (ss_full["総売上_今年"] != 0)
 ss_full = ss_full[mask]
 
-# ---------- 5.3 売上グラフ（円→万円） ----------
+# ---------- 売上グラフ ----------
 sales_plot = (
     ss_full.melt(id_vars="月",
                  value_vars=["総売上_前年", "総売上_今年"],
                  var_name="年度", value_name="売上")
       .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
-sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)     ### ←変更
+
+# ① 数値型保証 → ② 円→万円 → ③ ゼロ補完
+sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
+sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
+
 sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
@@ -180,11 +184,15 @@ fig = px.bar(
     title=f"{store} 月別総売上（前年 vs 今年）",
     labels={"売上":"金額 (万円)", "月":"月", "年度":"年"}
 )
+
 fig.update_xaxes(type="category",
                  categoryorder="array",
                  categoryarray=[str(i) for i in range(1, 13)])
+
 fig.update_traces(width=0.35)
-fig.update_yaxes(tickformat=",.0f") 
+fig.update_yaxes(tickformat=",.0f",
+                 range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
+
 st.plotly_chart(fig, use_container_width=True)
 
 # ---------- 5.4 来院数グラフ ----------
