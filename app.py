@@ -282,10 +282,11 @@ import numpy as np
 
 st.markdown("---")
 st.subheader("🎲 デモ：前年同月比較 (サンプルデータ)")
-np.random.seed(123)                             # 乱数固定
-months = list(range(1, 13))
-sales_2024 = np.random.randint(1, 11, 12)       # 1〜10 円
-sales_2025 = (sales_2024 * rng.uniform(0.8, 1.2, 12)).round().astype(int)
+
+rng = np.random.default_rng()                   # 推奨：Generator API
+months      = list(range(1, 13))
+sales_2024  = rng.integers(1, 11, size=12)      # 1〜10 円
+sales_2025  = rng.integers(1, 11, size=12)      # 1〜10 円
 demo_df = pd.DataFrame({
     "月": months * 2,
     "年": ["2024年"] * 12 + ["2025年"] * 12,
