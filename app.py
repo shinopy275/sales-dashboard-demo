@@ -186,7 +186,10 @@ fig = px.bar(
     labels={"売上":"金額 (万円)"}
 )
 fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
-fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
+#fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
+st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
+# ① ここで軸タイプを明示                          ▼これを追加
+fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
 
 ymax = sales_plot["売上"].max()
 fig.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
