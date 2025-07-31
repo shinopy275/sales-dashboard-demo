@@ -148,9 +148,29 @@ c1, c2 = st.columns(2)
 c1.metric("売上 前年比(累計)",  f"{sales_rate} %")
 c2.metric("来院数 前年比(累計)", f"{visit_rate} %")
 
+def color_pct(v: float) -> str:
+    color = "green" if v >= 0 else "red"
+    sign  = "+" if v >= 0 else ""
+    return f"<span style='color:{color}; font-weight:bold;'>{sign}{v:.1f}%</span>"
+
+# KPI 表示部を置き換え
+c1.markdown(f"売上 前年比(累計)：{color_pct(sales_rate)}", unsafe_allow_html=True)   ### ←変更
+c2.markdown(f"来院数 前年比(累計)：{color_pct(visit_rate)}", unsafe_allow_html=True) ### ←変更
+
+# KPI 算出後に追加
+total_sales = int(kpi_tot["総売上_今年"])
+total_visits = int(kpi_tot["総来院数_今年"])
+
+st.markdown(f"**累計総売上 (今年)**：{total_sales:,} 円")      ### ←追加
+st.markdown(f"**累計総来院数 (今年)**：{total_visits:,} 人")   ### ←追加
+
 # ---------- 5.2 月フルリスト補完 ----------
 full_months = pd.DataFrame({"月": range(1, 13)})
 ss_full = full_months.merge(ss, on="月", how="left").fillna(0)
+
+# ★ データが両方 0 の月を除外
+mask = (ss_full["総売上_前年"] != 0) | (ss_full["総売上_今年"] != 0)
+ss_full = ss_full[mask]
 
 # ---------- 5.3 売上グラフ（円→万円） ----------
 sales_plot = (
@@ -159,7 +179,7 @@ sales_plot = (
                  var_name="年度", value_name="売上")
       .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
-sales_plot["売上"] /= 10_000
+sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)     ### ←変更
 sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
@@ -172,7 +192,7 @@ fig.update_xaxes(type="category",
                  categoryorder="array",
                  categoryarray=[str(i) for i in range(1, 13)])
 fig.update_traces(width=0.35)
-fig.update_yaxes(tickformat=",.1f")
+fig.update_yaxes(tickformat=",.0f") 
 st.plotly_chart(fig, use_container_width=True)
 
 # ---------- 5.4 来院数グラフ ----------
