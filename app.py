@@ -179,22 +179,22 @@ sales_plot["年度"] = sales_plot["年度"].map({
 sales_plot["売上"] = pd.to_numeric(sales_plot["売上"])/10_000      # ← ここ以外で除算しない
 sales_plot["月"]   = sales_plot["月"].astype(str)
 
-fig = px.bar(
+fig_sales  = px.bar(
     sales_plot, x="月", y="売上",
     color="年度", barmode="group",
     title=f"{store} 月別総売上（前年 vs 今年）",
     labels={"売上":"金額 (万円)"}
 )
 # ① ここで軸タイプを明示                          ▼これを追加
-fig.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
+fig_sales.update_yaxes(type="linear", rangemode="tozero", tickformat=",.0f")
 
-fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
-fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
+fig_sales.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
+fig_sales.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
 
 ymax = sales_plot["売上"].max()
-fig.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
+fig_sales.update_yaxes(range=[0, ymax * 1.2])  # ← ここを仮で入れる
 
-st.plotly_chart(fig, use_container_width=True, key="sales")   # ★ key を付ける
+st.plotly_chart(fig_sales, use_container_width=True, key="sales-chart")
 st.write("axis type:", fig.layout.yaxis.type)   # ← 'category' なら原因確定
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
@@ -205,18 +205,18 @@ visit_plot = (
 )
 visit_plot[["月","年度"]] = visit_plot[["月","年度"]].astype(str)
 
-fig2 = px.bar(
+fig_visit = px.bar(
     visit_plot, x="月", y="来院数",
     color="年度",
     title=f"{store} 月別来院数（前年 vs 今年）",
     labels={"来院数":"人数", "月":"月", "年度":"年"}
 )
-fig2.update_xaxes(type="category",
+fig_visit.update_xaxes(type="category",
                   categoryorder="array",
                   categoryarray=[str(i) for i in range(1, 13)])
-fig2.update_traces(width=0.35)
-fig2.update_yaxes(tickformat=",")
-st.plotly_chart(fig2, use_container_width=True, key="visit")
+fig_visit.update_traces(width=0.35)
+fig_visit.update_yaxes(tickformat=",")
+st.plotly_chart(fig_visit, use_container_width=True, key="visit-chart")
 
 # ---------- 5.5 デバッグ用表示（任意） ----------
 with st.expander("📄 月別比較データ（店舗）"):
