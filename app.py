@@ -208,7 +208,7 @@ st.write(sales_plot.dtypes)
 # ──────────────────────────────────────────────
 # ② Plotly figure の trace を直接確認
 # ──────────────────────────────────────────────
-tmp_fig = px.bar(sales_plot, x="月", y="売上", color="年度", barmode="group")
+tmp_fig = px.bar(sales_plot, x="月", y="売上", color="年度")
 st.subheader("CHECK 2️⃣  figure.data  プレビュー")
 for t in tmp_fig.data:
     st.write(dict(name=t.name, x=t.x, y=t.y))   # <- 各 trace の x,y が配列で出るはず
