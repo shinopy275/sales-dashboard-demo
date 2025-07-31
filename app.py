@@ -180,9 +180,10 @@ sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
-    color="年度",
+    color="年度", barmode="group",        # ★追加
     title=f"{store} 月別総売上（前年 vs 今年）",
-    labels={"売上":"金額 (万円)", "月":"月", "年度":"年"}
+    labels={"売上": "金額 (万円)", "月": "月", "年度": "年"},
+    category_orders={"月": [str(i) for i in range(1, 13)]}  # 月順固定
 )
 
 fig.update_xaxes(
@@ -200,55 +201,6 @@ fig.update_yaxes(tickformat=",.0f", range=[0, sales_plot["売上"].max()*1.2])  
 
 st.plotly_chart(fig, use_container_width=True)
 
-# ────────── 追加：売上折れ線グラフ ──────────
-# ❶ 折れ線用データ（pivot して年度を列に）
-line_df = (
-    sales_plot.pivot(index="月", columns="年度", values="売上")
-              .reindex([str(i) for i in range(1, 13)])   # 月1~12 順に並べ替え
-              .fillna(0)
-              .reset_index()
-)
-
-# ❷ 折れ線グラフ
-fig_line = px.line(
-    line_df, x="月", y=[str(prev_year), str(latest_year)],
-    markers=True,
-    title=f"{store} 月別総売上（折れ線）",
-    labels={"value": "金額 (万円)", "variable": "年"}
-)
-
-fig_line.update_xaxes(type="category")
-fig_line.update_yaxes(tickformat=",.0f")
-fig_line.update_traces(line_shape="linear")   # 階段状が気になる場合は "hv" などに変更
-
-# ❸ 表示
-st.plotly_chart(fig_line, use_container_width=True)
-# ──────────────────────────────────────────────
-# ① melt 後のデータと dtypes を確認
-# ──────────────────────────────────────────────
-st.subheader("CHECK 1️⃣  melt 後データ ＆ 型")
-st.dataframe(sales_plot)
-st.write(sales_plot.dtypes)
-
-# 期待： 行=4、'売上' が float64、'月' と '年度' が object(str)
-
-# ──────────────────────────────────────────────
-# ② Plotly figure の trace を直接確認
-# ──────────────────────────────────────────────
-tmp_fig = px.bar(sales_plot, x="月", y="売上", color="年度", barmode="group")
-st.subheader("CHECK 2️⃣  figure.data  プレビュー")
-for t in tmp_fig.data:
-    st.write(dict(name=t.name, x=t.x, y=t.y))   # <- 各 trace の x,y が配列で出るはず
-
-# 期待： 2 本の trace があり y に 315, 274 など実数が入っている
-
-# ──────────────────────────────────────────────
-# ③ 描画パラメータを最小構成にして描く
-# ──────────────────────────────────────────────
-st.subheader("CHECK 3️⃣  最小構成グラフ")
-tmp_fig.update_layout(showlegend=True)
-tmp_fig.update_xaxes(type="category")
-st.plotly_chart(tmp_fig, use_container_width=True)
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
@@ -275,43 +227,3 @@ st.plotly_chart(fig2, use_container_width=True)
 with st.expander("📄 月別比較データ（店舗）"):
     st.dataframe(ss_full, use_container_width=True)
 
-# ──────────────────────────────
-# 6. デモ：前年同月比較（1 円単位の棒グラフ）
-# ──────────────────────────────
-import numpy as np
-
-st.markdown("---")
-st.subheader("🎲 デモ：前年同月比較 (サンプルデータ)")
-
-rng = np.random.default_rng()                   # 推奨：Generator API
-months      = list(range(1, 13))
-sales_2024  = rng.integers(1, 11, size=12)      # 1〜10 円
-sales_2025  = rng.integers(1, 11, size=12)      # 1〜10 円
-demo_df = pd.DataFrame({
-    "月": months * 2,
-    "年": ["2024年"] * 12 + ["2025年"] * 12,
-    "売上": np.concatenate([sales_2024, sales_2025])
-})
-demo_df["月"] = demo_df["月"].astype(str)
-
-demo_fig = px.bar(
-    demo_df, x="月", y="売上",
-    color="年", barmode="group",
-    title="前年同月比較 ─ 月別総売上（デモ：1 円単位）",
-    labels={"売上": "金額 (円)"}
-)
-
-# 1 円ごとの目盛り & 左マージン確保
-demo_fig.update_yaxes(dtick=1, rangemode="tozero")
-demo_fig.update_xaxes(type="category",
-                      categoryorder="array",
-                      categoryarray=[str(i) for i in months])
-# 棒の幅・ラベル表示
-demo_fig.update_traces(width=0.45,
-                       text=demo_df["売上"],
-                       textposition="outside")
-
-# 左マージンを少し広げて 1 月棒を完全表示
-demo_fig.update_layout(margin=dict(l=60))
-
-st.plotly_chart(demo_fig, use_container_width=True)
