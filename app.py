@@ -201,6 +201,15 @@ fig.update_yaxes(tickformat=",.0f", range=[0, sales_plot["売上"].max()*1.2])  
 
 st.plotly_chart(fig, use_container_width=True)
 
+st.subheader("⚙️ デバッグ: 取り込み→変換途中まで")
+st.write("▼ ss_full（フルリスト補完後）")
+st.dataframe(ss_full)
+
+st.write("▼ sales_plot（melt + 単位変換後）")
+st.dataframe(sales_plot)
+
+# y 軸レンジは一旦外す
+fig.update_yaxes(range=None)
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
