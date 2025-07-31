@@ -194,7 +194,32 @@ fig.update_yaxes(tickformat=",.0f",
                  range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
 
 st.plotly_chart(fig, use_container_width=True)
+# ──────────────────────────────────────────────
+# ① melt 後のデータと dtypes を確認
+# ──────────────────────────────────────────────
+st.subheader("CHECK 1️⃣  melt 後データ ＆ 型")
+st.dataframe(sales_plot)
+st.write(sales_plot.dtypes)
 
+# 期待： 行=4、'売上' が float64、'月' と '年度' が object(str)
+
+# ──────────────────────────────────────────────
+# ② Plotly figure の trace を直接確認
+# ──────────────────────────────────────────────
+tmp_fig = px.bar(sales_plot, x="月", y="売上", color="年度", barmode="group")
+st.subheader("CHECK 2️⃣  figure.data  プレビュー")
+for t in tmp_fig.data:
+    st.write(dict(name=t.name, x=t.x, y=t.y))   # <- 各 trace の x,y が配列で出るはず
+
+# 期待： 2 本の trace があり y に 315, 274 など実数が入っている
+
+# ──────────────────────────────────────────────
+# ③ 描画パラメータを最小構成にして描く
+# ──────────────────────────────────────────────
+st.subheader("CHECK 3️⃣  最小構成グラフ")
+tmp_fig.update_layout(showlegend=True)
+tmp_fig.update_xaxes(type="category")
+st.plotly_chart(tmp_fig, use_container_width=True)
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
     ss_full.melt(id_vars="月",
