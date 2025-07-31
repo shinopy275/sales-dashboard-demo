@@ -161,19 +161,27 @@ plot_df = (
       # '年度' を 2024 / 2025 のような数字に置換
       .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
-plot_df["売上"]  = pd.to_numeric(plot_df["売上"], errors="coerce").fillna(0)
-plot_df["月"]    = plot_df["月"].astype(str)
-plot_df["年度"]  = plot_df["年度"].astype(str)   # ← ここがポイント
-fig = px.bar(plot_df,
-             x="月", y="売上",
-             color="年度", barmode="group",
-             title=f"{store} 月別総売上（前年 vs 今年）",
-             labels={"月":"月", "売上":"金額", "年度":"年"})
+# ① スケール変換（例：円 → 万円）
+plot_df["売上"] = plot_df["売上"] / 10_000     # ← ★追加（万円表示）
+
+plot_df["月"]   = plot_df["月"].astype(str)
+plot_df["年度"] = plot_df["年度"].astype(str)
+
+fig = px.bar(
+    plot_df,
+    x="月", y="売上",
+    color="年度", barmode="group",
+    title=f"{store} 月別総売上（前年 vs 今年）",
+    labels={"売上": "金額 (万円)", "月": "月", "年度": "年"}  # ③ 単位を明示
+)
+
+fig.update_xaxes(type="category", categoryorder="category ascending")
+fig.update_traces(width=0.35)
+
+# ② カンマ区切り & 少数 1 桁
+fig.update_yaxes(tickformat=",.1f")           # 例：2,519.4
 st.plotly_chart(fig, use_container_width=True)
 
-st.subheader("DEBUG: melt 後データ")
-st.dataframe(plot_df)
-st.write(plot_df.dtypes)
 
 # 来院数グラフ
 plot_df2 = (
@@ -182,19 +190,19 @@ plot_df2 = (
             var_name="年度", value_name="来院数")
       .replace({"総来院数_前年": prev_year, "総来院数_今年": latest_year})
 )
-plot_df2["来院数"]  = pd.to_numeric(plot_df2["来院数"], errors="coerce").fillna(0)
-plot_df2["月"]    = plot_df2["月"].astype(str)
-plot_df2["年度"]  = plot_df2["年度"].astype(str)   # ← ここがポイント
-st.plotly_chart(
-    px.bar(plot_df2, x="月", y="来院数",
-           color="年度", barmode="group",
-           title=f"{store} 月別来院数（前年 vs 今年）"),
-    use_container_width=True
-)
+plot_df2["月"]   = plot_df2["月"].astype(str)
+plot_df2["年度"] = plot_df2["年度"].astype(str)
 
-st.subheader("DEBUG: melt 後データ")
-st.dataframe(plot_df2)
-st.write(plot_df2.dtypes)
+fig2 = px.bar(
+    plot_df2, x="月", y="来院数",
+    color="年度", barmode="group",
+    title=f"{store} 月別来院数（前年 vs 今年）",
+    labels={"来院数":"人数", "月":"月", "年度":"年"}
+)
+fig2.update_xaxes(type="category", categoryorder="category ascending")
+fig2.update_traces(width=0.35)
+fig2.update_yaxes(tickformat=",")   # 1,200 のようにカンマ区切り
+st.plotly_chart(fig2, use_container_width=True)
 
 # 元データ確認（オプション）
 with st.expander("📄 元データを見る"):
