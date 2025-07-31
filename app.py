@@ -199,6 +199,30 @@ fig.update_traces(width=0.6)               # 0.6 は “x=1” 幅に対する�
 fig.update_yaxes(tickformat=",.0f", range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
 
 st.plotly_chart(fig, use_container_width=True)
+
+# ────────── 追加：売上折れ線グラフ ──────────
+# ❶ 折れ線用データ（pivot して年度を列に）
+line_df = (
+    sales_plot.pivot(index="月", columns="年度", values="売上")
+              .reindex([str(i) for i in range(1, 13)])   # 月1~12 順に並べ替え
+              .fillna(0)
+              .reset_index()
+)
+
+# ❷ 折れ線グラフ
+fig_line = px.line(
+    line_df, x="月", y=[str(prev_year), str(latest_year)],
+    markers=True,
+    title=f"{store} 月別総売上（折れ線）",
+    labels={"value": "金額 (万円)", "variable": "年"}
+)
+
+fig_line.update_xaxes(type="category")
+fig_line.update_yaxes(tickformat=",.0f")
+fig_line.update_traces(line_shape="linear")   # 階段状が気になる場合は "hv" などに変更
+
+# ❸ 表示
+st.plotly_chart(fig_line, use_container_width=True)
 # ──────────────────────────────────────────────
 # ① melt 後のデータと dtypes を確認
 # ──────────────────────────────────────────────
