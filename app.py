@@ -134,7 +134,7 @@ sales_chart = (
                     title=f"{store} 月別総売上（前年 vs 今年）")
 )
 
-st.altair_chart(sales_chart, use_container_width=True, key=f"sales-{store}")
+st.altair_chart(sales_chart, use_container_width=True)
 
 # ---------- 5-4 Altair 来院数グラフ ----------
 visit_plot = (ss_full.melt(id_vars="月",
@@ -158,7 +158,7 @@ visit_chart = (
                     title=f"{store} 月別来院数（前年 vs 今年）")
 )
 
-st.altair_chart(visit_chart, use_container_width=True, key=f"visit-{store}")
+st.altair_chart(visit_chart, use_container_width=True)
 
 # ---------- 5-5 元データ表示 ----------
 with st.expander("📄 月別比較データ（店舗）"):
