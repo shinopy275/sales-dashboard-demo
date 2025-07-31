@@ -153,26 +153,36 @@ k1.metric("売上 前年比", f"{current['総売上増減率%']} %")
 k2.metric("来院数 前年比", f"{current['総来院数増減率%']} %")
 
 # 売上グラフ
-fig = px.bar(
-    ss,
-    x="月",
-    y=["総売上_前年", "総売上_今年"],
-    title=f"{store} 月別総売上（前年 vs 今年）",
-    labels={"value": "金額", "variable": "年度"},
-    barmode="group",
+# ── 店舗 ss は「月」「総売上_前年」「総売上_今年」列を持つ DataFrame
+plot_df = (
+    ss.melt(id_vars="月",
+            value_vars=["総売上_前年", "総売上_今年"],
+            var_name="年度", value_name="売上")
+      # '年度' を 2024 / 2025 のような数字に置換
+      .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
+
+fig = px.bar(plot_df,
+             x="月", y="売上",
+             color="年度", barmode="group",
+             title=f"{store} 月別総売上（前年 vs 今年）",
+             labels={"月":"月", "売上":"金額", "年度":"年"})
 st.plotly_chart(fig, use_container_width=True)
 
 # 来院数グラフ
-fig2 = px.bar(
-    ss,
-    x="月",
-    y=["総来院数_前年", "総来院数_今年"],
-    title=f"{store} 月別来院数（前年 vs 今年）",
-    labels={"value": "人数", "variable": "年度"},
-    barmode="group",
+plot_df2 = (
+    ss.melt(id_vars="月",
+            value_vars=["総来院数_前年", "総来院数_今年"],
+            var_name="年度", value_name="来院数")
+      .replace({"総来院数_前年": prev_year, "総来院数_今年": latest_year})
 )
-st.plotly_chart(fig2, use_container_width=True)
+
+st.plotly_chart(
+    px.bar(plot_df2, x="月", y="来院数",
+           color="年度", barmode="group",
+           title=f"{store} 月別来院数（前年 vs 今年）"),
+    use_container_width=True
+)
 
 # 元データ確認（オプション）
 with st.expander("📄 元データを見る"):
