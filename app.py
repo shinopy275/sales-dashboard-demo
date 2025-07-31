@@ -172,33 +172,17 @@ sales_plot = (
       .replace({"総売上_前年": prev_year, "総売上_今年": latest_year})
 )
 
-# ① 数値型保証 → ② 円→万円 → ③ ゼロ補完
-sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce").fillna(0)
-sales_plot["売上"] = (sales_plot["売上"] / 10_000).round(0)
-
+# 売上・月・年度 以外をいじらない
+sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce") / 10_000
 sales_plot[["月","年度"]] = sales_plot[["月","年度"]].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
-    color="年度", barmode="group",        # ★追加
+    color="年度", barmode="group",
     title=f"{store} 月別総売上（前年 vs 今年）",
-    labels={"売上": "金額 (万円)", "月": "月", "年度": "年"},
-    category_orders={"月": [str(i) for i in range(1, 13)]}  # 月順固定
+    labels={"売上":"金額 (万円)"}
 )
-
-fig.update_xaxes(
-    type="category",
-    categoryorder="array",
-    categoryarray=[str(i) for i in range(1, 13)]  # ← ★文字列にそろえる
-)
-# あるいは categoryarray 行ごと削除しても OK
-
-#fig.update_traces(width=0.35)
-# ★ ここを変更：幅を「px」で絶対指定
-fig.update_traces(width=0.6)               # 0.6 は “x=1” 幅に対する比率
-                                           # もっと太くするなら 0.8 など
-fig.update_yaxes(tickformat=",.0f", range=[0, sales_plot["売上"].max()*1.2])   # ←★追加
-
+fig.update_layout(bargap=0.15, bargroupgap=0.05)   # 幅調整はこちらで
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("⚙️ デバッグ: 取り込み→変換途中まで")
