@@ -165,44 +165,30 @@ mask = (ss_full["総売上_前年"] != 0) | (ss_full["総売上_今年"] != 0)
 ss_full = ss_full[mask]
 
 # ---------- 売上グラフ ----------
+# ---------- 売上グラフ（完全版・これだけ残す） ----------
 sales_plot = (
     ss_full.melt(
         id_vars="月",
-        value_vars=["総売上_前年", "総売上_今年"],
+        value_vars=["総売上_前年","総売上_今年"],
         var_name="年度", value_name="売上"
     )
 )
-
-# 年度を書き換えるのは '年度' 列だけ！
-sales_plot["年度"] = sales_plot["年度"].replace({
-    "総売上_前年": prev_year,
-    "総売上_今年": latest_year
+sales_plot["年度"] = sales_plot["年度"].map({
+    "総売上_前年": prev_year, "総売上_今年": latest_year
 }).astype(str)
-
-# 万円へ変換 & 数値型を保証
-sales_plot["売上"] = pd.to_numeric(sales_plot["売上"], errors="coerce") / 10_000
-
-# 月も文字列化（順序固定用）
-sales_plot["月"] = sales_plot["月"].astype(str)
-
-# デバッグ
-st.write("▼ sales_plot dtypes")
-st.write(sales_plot.dtypes)        # ← 売上 float64 なら OK
-st.dataframe(sales_plot)           # ← 値が 250 や 320 になっているか確認
+sales_plot["売上"] = pd.to_numeric(sales_plot["売上"])/10_000      # ← ここ以外で除算しない
+sales_plot["月"]   = sales_plot["月"].astype(str)
 
 fig = px.bar(
     sales_plot, x="月", y="売上",
     color="年度", barmode="group",
     title=f"{store} 月別総売上（前年 vs 今年）",
-    labels={"売上": "金額 (万円)"}
+    labels={"売上":"金額 (万円)"}
 )
-fig.update_yaxes(rangemode="tozero", tickformat=",.0f")
-fig.update_layout(bargap=0.15, bargroupgap=0.05)
+fig.update_layout(bargap=0.15, bargroupgap=0.05)  # 棒幅だけ
+fig.update_yaxes(rangemode="tozero", tickformat=",.0f")  # y軸は自動レンジ
 
-for i, t in enumerate(fig.data):
-    st.write(f"trace {i}", dict(x=t.x, y=t.y[:10]))  # y を一部だけ表示
 st.plotly_chart(fig, use_container_width=True)
-
 
 # ---------- 5.4 来院数グラフ ----------
 visit_plot = (
