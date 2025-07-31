@@ -169,6 +169,10 @@ fig = px.bar(plot_df,
              labels={"月":"月", "売上":"金額", "年度":"年"})
 st.plotly_chart(fig, use_container_width=True)
 
+st.subheader("DEBUG: melt 後データ")
+st.dataframe(plot_df)
+st.write(plot_df.dtypes)
+
 # 来院数グラフ
 plot_df2 = (
     ss.melt(id_vars="月",
@@ -183,6 +187,10 @@ st.plotly_chart(
            title=f"{store} 月別来院数（前年 vs 今年）"),
     use_container_width=True
 )
+
+st.subheader("DEBUG: melt 後データ")
+st.dataframe(plot_df2)
+st.write(plot_df2.dtypes)
 
 # 元データ確認（オプション）
 with st.expander("📄 元データを見る"):
