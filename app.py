@@ -82,7 +82,7 @@ def parse_ltv(f):
 
 @st.cache_data(show_spinner=False)
 def load(uploaded):
-    """uploaded: list of UploadedFile (xlsx or zip) → dataframes + messages"""
+    """uploaded: list of UploadedFile (xlsx) → dataframes + messages"""
     sales, reasons, genders, ages, ltvs = [], [], [], [], []
     msgs: list[str] = []
 
@@ -145,7 +145,7 @@ def load(uploaded):
 
 # ───── ファイル選択 ─────
 
-files = st.file_uploader("📂 Excel を選択（複数可）", type=["xlsx", "zip"], accept_multiple_files=True)
+files = st.file_uploader("📂 Excel を選択（複数可）", type=["xlsx"], accept_multiple_files=True)
 if not files:
     st.stop()
 
