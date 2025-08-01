@@ -24,41 +24,45 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
     return int(day.dt.year.mode()[0]), int(day.dt.month.mode()[0])
 
 # ───── 患者分析シート ─────
-
 def parse_patient_analysis(f):
-    sheet = pd.read_excel(f, sheet_name="患者分析", header=None, engine="openpyxl")
+    """患者分析シートを抽出。無い場合は 0 データで返す"""
+    try:
+        xls = pd.ExcelFile(f, engine="openpyxl")
+        if "患者分析" not in xls.sheet_names:
+            raise ValueError("シートなし")
+        sheet = xls.parse("患者分析", header=None)
+    except Exception:
+        import streamlit as st
+        st.warning(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
+        # シートが無ければすべて 0
+        zero = lambda cats: pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+        return (
+            zero(["男性", "女性"]),
+            zero(["チラシ", "紹介", "看板", "ネット", "その他"]),
+            zero(["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"]),
+        )
 
-    # 取得できなかった場合も 0 を返すためのデフォルトカテゴリ
-    defaults = {
-        "gender":  ["男性", "女性"],
-        "reason":  ["チラシ", "紹介", "看板", "ネット", "その他"],
-        "age":     ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"],
-    }
+    def grab(keyword: str, rng: slice | None, cats: list[str]):
+        mask = sheet.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)
+        if not mask.any():
+            return pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+        r = mask.idxmax()
+        header = sheet.iloc[r + 1]
+        vals   = sheet.iloc[r + 2]
+        if rng is not None:
+            header = header.iloc[rng]
+            vals   = vals.iloc[rng]
+        header = header.dropna()
+        if header.empty:
+            return pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+        data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
+        return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    def grab(keyword: str, rng: slice | None, key: str):
-        try:
-            mask = sheet.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)
-            if not mask.any():
-                raise ValueError
-            row_idx = mask.idxmax()
-            header = sheet.iloc[row_idx + 1]
-            vals   = sheet.iloc[row_idx + 2]
-            if rng is not None:
-                header = header.iloc[rng]
-                vals   = vals.iloc[rng]
-            header = header.dropna()
-            data   = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
-            if data.empty:
-                raise ValueError
-            return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
-        except Exception:
-            # 取れなかったら既定カテゴリを 0 で返す
-            return pd.DataFrame({"カテゴリ": defaults[key], "件数": [0]*len(defaults[key])})
-
-    gender = grab("男女比率",  slice(0, 2),  "gender")   # A-B
-    reason = grab("来院動機", slice(5, 10), "reason")   # F-J
-    age    = grab("年齢比率", None,        "age")
+    gender = grab("男女比率",  slice(1, 3),  ["男性", "女性"])
+    reason = grab("来院動機", slice(5, 10), ["チラシ", "紹介", "看板", "ネット", "その他"])
+    age    = grab("年齢比率", None,        ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"])
     return gender, reason, age
+
 # ───── LTV ─────
 
 def parse_ltv(f):
