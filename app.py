@@ -47,6 +47,11 @@ def parse_patient_analysis(f):
         if not mask.any():
             return pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
         r = mask.idxmax()
+        # --- ガード追加 --------------------------
+    if r + 2 >= len(sheet):
+        st.warning(f\"{f.name}: '{keyword}' 行の下にデータ行がありません → 0 件扱い\")
+        return pd.DataFrame({\"カテゴリ\": cats, \"件数\": [0]*len(cats)})
+    # ----------------------------------------
         header = sheet.iloc[r + 1]
         vals   = sheet.iloc[r + 2]
         if rng is not None:
