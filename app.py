@@ -24,7 +24,6 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
     return int(day.dt.year.mode()[0]), int(day.dt.month.mode()[0])
 
 # ───── 患者分析シート ─────
-# ───── 患者分析シート ─────
 
 def parse_patient_analysis(f):(f):
     """患者分析シートを抽出。無い場合は 0 データで返す"""
@@ -60,7 +59,7 @@ def parse_patient_analysis(f):(f):
         data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
         return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    gender = grab("男女比率",  slice(1, 3),  ["男性", "女性"])
+    gender = grab("男女比率",  slice(0, 2),  ["男性", "女性"])
     reason = grab("来院動機", slice(5, 10), ["チラシ", "紹介", "看板", "ネット", "その他"])
     age    = grab("年齢比率", None,        ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"])
     return gender, reason, age
