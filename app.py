@@ -5,7 +5,7 @@ import re, math, zipfile, io
 from typing import List, Tuple
 import collections.abc as abc
 import streamlit_authenticator as stauth
-
+st.set_page_config(page_title="売上ダッシュボード", layout="wide")
 def to_dict(obj):
     """Mapping を再帰的に普通の dict へ"""
     if isinstance(obj, abc.Mapping):
@@ -40,7 +40,7 @@ if "auth_ok" not in st.session_state:
     st.session_state["auth_ok"] = True
 
 # ─── ここより下にダッシュボード本体 ───
-st.set_page_config(page_title="売上ダッシュボード", layout="wide")
+
 st.title("📝 Excelアップロード → 前年同月ダッシュボード")
 
 # ───────── ヘルパ ─────────
