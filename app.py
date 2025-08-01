@@ -28,25 +28,37 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
 def parse_patient_analysis(f):
     sheet = pd.read_excel(f, sheet_name="患者分析", header=None, engine="openpyxl")
 
-    def grab(keyword, rng: slice | None = None):
-        mask = sheet.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)
-        if not mask.any():
-            return pd.DataFrame()
-        r = mask.idxmax()
-        header = sheet.loc[r + 1]
-        vals   = sheet.loc[r + 2]
-        if rng is not None:
-            header = header.iloc[rng]
-            vals   = vals.iloc[rng]
-        header = header.dropna()
-        data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
-        return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
+    # 取得できなかった場合も 0 を返すためのデフォルトカテゴリ
+    defaults = {
+        "gender":  ["男性", "女性"],
+        "reason":  ["チラシ", "紹介", "看板", "ネット", "その他"],
+        "age":     ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"],
+    }
 
-    gender = grab("男女比率", slice(0, 2))    # A,B
-    reason = grab("来院動機", slice(5, 10))   # F:J
-    age    = grab("年齢比率")
+    def grab(keyword: str, rng: slice | None, key: str):
+        try:
+            mask = sheet.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)
+            if not mask.any():
+                raise ValueError
+            row_idx = mask.idxmax()
+            header = sheet.iloc[row_idx + 1]
+            vals   = sheet.iloc[row_idx + 2]
+            if rng is not None:
+                header = header.iloc[rng]
+                vals   = vals.iloc[rng]
+            header = header.dropna()
+            data   = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
+            if data.empty:
+                raise ValueError
+            return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
+        except Exception:
+            # 取れなかったら既定カテゴリを 0 で返す
+            return pd.DataFrame({"カテゴリ": defaults[key], "件数": [0]*len(defaults[key])})
+
+    gender = grab("男女比率",  slice(0, 2),  "gender")   # A-B
+    reason = grab("来院動機", slice(5, 10), "reason")   # F-J
+    age    = grab("年齢比率", None,        "age")
     return gender, reason, age
-
 # ───── LTV ─────
 
 def parse_ltv(f):
