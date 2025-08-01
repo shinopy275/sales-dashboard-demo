@@ -11,11 +11,11 @@ if "auth_ok" not in st.session_state:
     # secrets.toml で定義したものがそのまま dict で取れる
     credentials = dict(st.secrets["credentials"])
 
-    authenticator = stauth.Authenticate(
-        credentials,
-        cookie_name="salesdash",
-        key="salesdash_key",
-        cookie_expiry_days=7,
+        authenticator = stauth.Authenticate(
+        credentials,          # 1. credentials
+        "salesdash",          # 2. cookie_name
+        "salesdash_key",      # 3. key
+        cookie_expiry_days=7  # 以降はキーワード可
     )
 
     name, auth_status, username = authenticator.login("ログイン", "main")
