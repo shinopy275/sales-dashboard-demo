@@ -145,7 +145,7 @@ def load(uploaded):
 
 # ───── ファイル選択 ─────
 
-files = st.file_uploader("📂 Excel / Zip フォルダを選択（複数可）", type=["xlsx", "zip"], accept_multiple_files=True)
+files = st.file_uploader("📂 Excel を選択（複数可）", type=["xlsx", "zip"], accept_multiple_files=True)
 if not files:
     st.stop()
 
