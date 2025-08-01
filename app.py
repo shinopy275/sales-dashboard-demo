@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import re, math
+import re, math, zipfile, io
 from typing import List, Tuple
 
 st.set_page_config(page_title="売上ダッシュボード", layout="wide")
@@ -63,7 +63,7 @@ def parse_patient_analysis(f):
         data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
         return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    gender = grab("男女比率",  slice(1, 3),  C_GENDER)  # B:C
+    gender = grab("男女比率",  slice(0, 2),  C_GENDER)  # A:B
     reason = grab("来院動機", slice(5, 10), C_REASON)  # F:J
     age    = grab("年齢比率", None,        C_AGE)
     return gender, reason, age
@@ -81,18 +81,41 @@ def parse_ltv(f):
 # ───── Excel 読込 ─────
 
 @st.cache_data(show_spinner=False)
-def load(files):
+def load(uploaded):
+    """uploaded: list of UploadedFile (xlsx or zip) → dataframes + messages"""
     sales, reasons, genders, ages, ltvs = [], [], [], [], []
-    for f in files:
-        try:
-            store = get_store_name(f.name)
-        except ValueError as e:
-            st.warning(str(e)); continue
+    msgs: list[str] = []
 
+    def add_msg(txt):
+        msgs.append(txt)
+
+    # 展開してすべての xlsx を files_list に
+    files_list: list[tuple[str, bytes]] = []
+    for up in uploaded:
+        if up.name.lower().endswith(".zip"):
+            try:
+                with zipfile.ZipFile(io.BytesIO(up.read())) as zf:
+                    for name in zf.namelist():
+                        if name.lower().endswith(".xlsx"):
+                            files_list.append((name, zf.read(name)))
+            except Exception as e:
+                add_msg(f"{up.name}: zip 展開失敗 ({e})")
+        else:
+            files_list.append((up.name, up.read()))
+
+    for fname, raw in files_list:
+        file_bytes = io.BytesIO(raw)
+        file_bytes.name = fname  # pandas が参照
         try:
-            df_sales = pd.read_excel(f, sheet_name="売上管理", header=4, engine="openpyxl")
+            store = get_store_name(fname)
+        except ValueError as e:
+            add_msg(str(e)); continue
+
+        # 売上管理
+        try:
+            df_sales = pd.read_excel(file_bytes, sheet_name="売上管理", header=4, engine="openpyxl")
         except Exception as e:
-            st.warning(f"{f.name}: 売上管理読み込み失敗 ({e})"); continue
+            add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
 
         for col in ("総売上", "総来院数"):
             if col in df_sales.columns:
@@ -101,33 +124,41 @@ def load(files):
         try:
             y, m = infer_year_month(df_sales)
         except ValueError as e:
-            st.warning(f"{f.name}: {e}"); continue
+            add_msg(f"{fname}: {e}"); continue
 
         df_sales["店舗名"], df_sales["年"], df_sales["月"] = store, y, m
         sales.append(df_sales)
 
-        g, r, a = parse_patient_analysis(f)
-        for df_, lst in [(g, genders), (r, reasons), (a, ages)]:
+        # 患者分析・LTV
+        g, r, a = parse_patient_analysis(file_bytes)
+        for df_, lst in ((g, genders), (r, reasons), (a, ages)):
             if not df_.empty:
                 df_["店舗名"], df_["年"], df_["月"] = store, y, m
                 lst.append(df_)
 
-        val = parse_ltv(f)
+        val = parse_ltv(file_bytes)
         if val is not None:
             ltvs.append({"店舗名": store, "年": y, "月": m, "LTV": val})
 
     out = lambda lst: pd.concat(lst, ignore_index=True) if lst else pd.DataFrame()
-    return out(sales), out(reasons), out(genders), out(ages), pd.DataFrame(ltvs)
+    return out(sales), out(reasons), out(genders), out(ages), pd.DataFrame(ltvs), msgs
 
 # ───── ファイル選択 ─────
 
-files = st.file_uploader("📂 Excel ファイルを選択（複数可）", type="xlsx", accept_multiple_files=True)
+files = st.file_uploader("📂 Excel / Zip フォルダを選択（複数可）", type=["xlsx", "zip"], accept_multiple_files=True)
 if not files:
     st.stop()
 
-sales_df, reason_df, gender_df, age_df, ltv_df = load(files)
-if sales_df.empty:
-    st.error("売上管理シートが読み込めませんでした"); st.stop()
+sales_df, reason_df, gender_df, age_df, ltv_df, msgs = load(files)
+if sales_df.empty and not msgs:
+    st.error("有効なファイルが読み込めませんでした")
+    st.stop()
+
+# メッセージ折り畳み
+if msgs:
+    with st.expander("⚠️ 解析メッセージ"):
+        for m in msgs:
+            st.markdown(f"- {m}")
 
 # ───── 表示用フォーマッタ ─────
 
