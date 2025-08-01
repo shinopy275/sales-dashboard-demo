@@ -13,18 +13,26 @@ def to_dict(obj):
     return obj
 
 # ─── 認証 ───
+# 認証ブロックを書き換え
 if "auth_ok" not in st.session_state:
-    # secrets.toml → 完全なミュータブル dict
-    credentials = to_dict(st.secrets["credentials"])
+    credentials = to_dict(st.secrets["credentials"])   # ← そのまま
 
     authenticator = stauth.Authenticate(
-        credentials,          # 1. credentials
-        "salesdash",          # 2. cookie_name
-        "salesdash_key",      # 3. key
-        cookie_expiry_days=7
+        credentials, "salesdash", "salesdash_key", cookie_expiry_days=7
     )
 
-    name, auth_status, username = authenticator.login("ログイン", "main")
+    # ★ v0.4 以降の login ★
+    fields = {
+        "Form name": "ログイン",
+        "Username": "ユーザー名",
+        "Password": "パスワード",
+        "Login": "ログイン"
+    }
+    name, auth_status, username = authenticator.login(
+        fields=fields,       # ← ここが必須
+        location="main"
+    )
+
     if not auth_status:
         st.stop()
 
