@@ -26,28 +26,32 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
 # ───── 患者分析シート ─────
 
 def parse_patient_analysis(f):
-    """患者分析シートを抽出。無い場合は 0 データで返す"""
+    """患者分析シートを抽出。無い/欠落時は 0 データで返す"""
+    # 決め打ちカテゴリ
+    C_GENDER = ["男性", "女性"]
+    C_REASON = ["チラシ", "紹介", "看板", "ネット", "その他"]
+    C_AGE    = ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"]
+
+    zero = lambda cats: pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+
     try:
         xls = pd.ExcelFile(f, engine="openpyxl")
         if "患者分析" not in xls.sheet_names:
             raise ValueError("シートなし")
         sheet = xls.parse("患者分析", header=None)
     except Exception:
-        import streamlit as st
         st.warning(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
-        # シートが無ければすべて 0
-        zero = lambda cats: pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
-        return (
-            zero(["男性", "女性"]),
-            zero(["チラシ", "紹介", "看板", "ネット", "その他"]),
-            zero(["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"]),
-        )
+        return zero(C_GENDER), zero(C_REASON), zero(C_AGE)
 
     def grab(keyword: str, rng: slice | None, cats: list[str]):
         mask = sheet.apply(lambda r: r.astype(str).str.contains(keyword).any(), axis=1)
         if not mask.any():
-            return pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+            return zero(cats)
         r = mask.idxmax()
+        # データ行が足りない場合は 0
+        if r + 2 >= len(sheet):
+            st.warning(f"{f.name}: '{keyword}' のデータ行が不足 - 0 件として処理します")
+            return zero(cats)
         header = sheet.iloc[r + 1]
         vals   = sheet.iloc[r + 2]
         if rng is not None:
@@ -55,13 +59,13 @@ def parse_patient_analysis(f):
             vals   = vals.iloc[rng]
         header = header.dropna()
         if header.empty:
-            return pd.DataFrame({"カテゴリ": cats, "件数": [0]*len(cats)})
+            return zero(cats)
         data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
         return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    gender = grab("男女比率",  slice(0, 2),  ["男性", "女性"])
-    reason = grab("来院動機", slice(5, 10), ["チラシ", "紹介", "看板", "ネット", "その他"])
-    age    = grab("年齢比率", None,        ["10代未満", "10代", "20代", "30代", "40代", "50代", "60代", "70代", "80代", "90歳以上"])
+    gender = grab("男女比率",  slice(1, 3),  C_GENDER)  # B:C
+    reason = grab("来院動機", slice(5, 10), C_REASON)  # F:J
+    age    = grab("年齢比率", None,        C_AGE)
     return gender, reason, age
 
 # ───── LTV ─────
