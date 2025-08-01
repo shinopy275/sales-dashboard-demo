@@ -3,12 +3,5 @@ pandas
 plotly
 openpyxl
 
-# 認証
-streamlit-authenticator>=0.4.0
-bcrypt
-
-# Streamlit が要求する上限に合わせ固定
-rich<14
-markdown-it-py<3
-pygments<3
-mdurl<0.2
+streamlit-authenticator==0.3.2   # ← 追加・固定
+bcrypt                            # ← 依存
