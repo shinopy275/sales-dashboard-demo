@@ -4,3 +4,8 @@ plotly
 openpyxl
 streamlit-authenticator>=0.4.0
 bcrypt
+# ↓ ここから追加 -------------
+rich<14
+markdown-it-py<3
+pygments<3
+# ↑ ここまで追加 -------------
