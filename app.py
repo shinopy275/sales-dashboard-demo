@@ -25,7 +25,7 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
 
 # ───── 患者分析シート ─────
 
-def parse_patient_analysis(f):(f):
+def parse_patient_analysis(f):
     """患者分析シートを抽出。無い場合は 0 データで返す"""
     try:
         xls = pd.ExcelFile(f, engine="openpyxl")
