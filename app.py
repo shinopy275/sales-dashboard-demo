@@ -63,7 +63,7 @@ def parse_patient_analysis(f):
         data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
         return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    gender = grab("男女比率",  slice(0, 2),  C_GENDER)  # A:B
+    gender = grab("男女比率",  slice(1, 3),  C_GENDER)  # B:C
     reason = grab("来院動機", slice(5, 10), C_REASON)  # F:J
     age    = grab("年齢比率", None,        C_AGE)
     return gender, reason, age
@@ -129,6 +129,20 @@ sales_df, reason_df, gender_df, age_df, ltv_df = load(files)
 if sales_df.empty:
     st.error("売上管理シートが読み込めませんでした"); st.stop()
 
+# ───── 表示用フォーマッタ ─────
+
+def sty(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
+    """% 以外は小数点なし、年はカンマなし"""
+    fmts: dict[str, str] = {}
+    for c in df.columns:
+        if c.endswith("%"):
+            fmts[c] = "{:+.1f}"  # 増減率は ±1 桁
+        elif pd.api.types.is_numeric_dtype(df[c]):
+            fmts[c] = "{:,.0f}"   # 整数(千区切り) 小数無し
+        if c == "年":
+            fmts[c] = "{:d}"    # カンマなし
+    return df.style.format(fmts)
+
 # ───── 全店舗サマリー ─────
 
 monthly = sales_df.groupby(["店舗名", "年", "月"], as_index=False)[["総売上", "総来院数"]].sum()
@@ -171,7 +185,7 @@ if month_total_rows:
 
 st.subheader(f"📊 全店舗サマリー（{latest}年 vs {prev}年）")
 show = ["店舗名", "月", "総売上_前年", "総売上_今年", "総売上増減率%", "総来院数_前年", "総来院数_今年", "総来院数増減率%", "LTV_前年", "LTV_今年", "LTV増減率%"]
-st.dataframe(comp_all[show], use_container_width=True)
+st.dataframe(sty(comp_all[show]), use_container_width=True)
 
 # ───── 店舗別 ─────
 
@@ -238,4 +252,4 @@ plot_pivot(gender_df, "男女比率")
 plot_pivot(age_df,    "年齢比率")
 
 with st.expander("📄 月別比較データ（店舗）"):
-    st.dataframe(ss_full, use_container_width=True)
+    st.dataframe(sty(ss_full), use_container_width=True)
