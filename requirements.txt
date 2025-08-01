@@ -1,11 +1,14 @@
-streamlit==1.33
+streamlit==1.33.0
 pandas
 plotly
 openpyxl
+
+# 認証
 streamlit-authenticator>=0.4.0
 bcrypt
-# ↓ ここから追加 -------------
+
+# Streamlit が要求する上限に合わせ固定
 rich<14
 markdown-it-py<3
 pygments<3
-# ↑ ここまで追加 -------------
+mdurl<0.2
