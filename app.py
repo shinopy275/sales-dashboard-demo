@@ -3,26 +3,34 @@ import pandas as pd
 import altair as alt
 import re, math, zipfile, io
 from typing import List, Tuple
+import collections.abc as abc
 import streamlit_authenticator as stauth
+
+def to_dict(obj):
+    """Mapping を再帰的に普通の dict へ"""
+    if isinstance(obj, abc.Mapping):
+        return {k: to_dict(v) for k, v in obj.items()}
+    return obj
 
 # ─── 認証 ───
 if "auth_ok" not in st.session_state:
-    credentials = dict(st.secrets["credentials"])   # dict() でキャスト
+    # secrets.toml → 完全なミュータブル dict
+    credentials = to_dict(st.secrets["credentials"])
 
     authenticator = stauth.Authenticate(
         credentials,          # 1. credentials
         "salesdash",          # 2. cookie_name
         "salesdash_key",      # 3. key
-        cookie_expiry_days=7  # 4. これ以降はキーワード OK
+        cookie_expiry_days=7
     )
 
     name, auth_status, username = authenticator.login("ログイン", "main")
-
-    if not auth_status:        # 未入力・エラー時
+    if not auth_status:
         st.stop()
 
     authenticator.logout("ログアウト", "sidebar")
     st.session_state["auth_ok"] = True
+
 # ─── ここより下にダッシュボード本体 ───
 st.set_page_config(page_title="売上ダッシュボード", layout="wide")
 st.title("📝 Excelアップロード → 前年同月ダッシュボード")
