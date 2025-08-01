@@ -42,7 +42,7 @@ def parse_patient_analysis(f):
         data = pd.to_numeric(vals[header.index], errors="coerce").fillna(0)
         return pd.DataFrame({"カテゴリ": header.values, "件数": data.values})
 
-    gender = grab("男女比率", slice(1, 3))    # B,C
+    gender = grab("男女比率", slice(0, 2))    # A,B
     reason = grab("来院動機", slice(5, 10))   # F:J
     age    = grab("年齢比率")
     return gender, reason, age
