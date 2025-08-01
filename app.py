@@ -36,8 +36,9 @@ if "auth_ok" not in st.session_state:
     if not auth_status:
         st.stop()
 
-    authenticator.logout("ログアウト", "sidebar")
-    st.session_state["auth_ok"] = True
+# ★★ ② ログアウト直後にフラグを消すなら ↓ を追加 ★★
+authenticator.logout("ログアウト", "sidebar")
+st.session_state.pop("auth_ok", None)     # ← 追加
 
 # ─── ここより下にダッシュボード本体 ───
 
