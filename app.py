@@ -3,7 +3,28 @@ import pandas as pd
 import altair as alt
 import re, math, zipfile, io
 from typing import List, Tuple
+import streamlit_authenticator as stauth
+import yaml
 
+# ─── 認証 ───
+if "auth_ok" not in st.session_state:
+    # secrets.toml で定義したものがそのまま dict で取れる
+    credentials = st.secrets["credentials"]
+
+    authenticator = stauth.Authenticate(
+        credentials,
+        cookie_name="salesdash",
+        key="salesdash_key",
+        cookie_expiry_days=7,
+    )
+
+    name, auth_status, username = authenticator.login("ログイン", "main")
+
+    if not auth_status:        # 失敗 / 未入力
+        st.stop()
+
+    authenticator.logout("ログアウト", "sidebar")
+    st.session_state["auth_ok"] = True
 st.set_page_config(page_title="売上ダッシュボード", layout="wide")
 st.title("📝 Excelアップロード → 前年同月ダッシュボード")
 
