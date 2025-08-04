@@ -151,16 +151,7 @@ def load(uploaded):
         # 売上管理
         try:
             df_sales = pd.read_excel(file_bytes, sheet_name="売上管理", header=4, engine="openpyxl")
-            st.write(df_sales[["総売上", "総来院数"]].dtypes)   # float でなく object なら文字列
-
-# カンマや空白を削って数値化 → この一行で改善するケースが多い
-for col in ("総売上", "総来院数"):
-    if col in df_sales.columns:
-        df_sales[col] = (df_sales[col]
-                         .astype(str).str.replace(r"[,\s]", "", regex=True)
-                         .replace({"": 0, "nan": 0, "-": 0})
-                         .astype(float))
-   
+            st.write(df_sales[["総売上", "総来院数"]].dtypes)   # float でなく object なら文字列  
         except Exception as e:
             add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
 
