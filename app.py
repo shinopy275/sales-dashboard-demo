@@ -151,7 +151,9 @@ def load(uploaded):
         # 売上管理
         try:
             df_sales = pd.read_excel(file_bytes, sheet_name="売上管理", header=4, engine="openpyxl")
-            
+            with st.expander(f"🛠 RAW PREVIEW : {fname}"):
+    st.write("▼ カラム一覧", list(df_sales.columns))
+   
         except Exception as e:
             add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
 
