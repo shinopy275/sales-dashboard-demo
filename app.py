@@ -166,6 +166,11 @@ def load(uploaded):
         df_sales["店舗名"], df_sales["年"], df_sales["月"] = store, y, m
         sales.append(df_sales)
 
+         # ★ ファイル単位で中身を確認
+        with st.expander(f"📖 RAW {fname}"):
+            st.write(f"店舗={store}  年={y}  月={m}")
+            st.dataframe(df_sales[["日付", "総売上", "総来院数"]].head(20))
+
         # 患者分析・LTV
         g, r, a = parse_patient_analysis(file_bytes)
         for df_, lst in ((g, genders), (r, reasons), (a, ages)):
