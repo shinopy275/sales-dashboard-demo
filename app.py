@@ -151,6 +151,13 @@ def load(uploaded):
         # 売上管理
         try:
             df_sales = pd.read_excel(file_bytes, sheet_name="売上管理", header=4, engine="openpyxl")
+            # ─── デバッグ表示を追加 ─────────────────────────
+with st.expander(f"🛠 RAW PREVIEW : {fname}"):
+    st.write("▼ カラム一覧", list(df_sales.columns))
+    # 売上・来院数・日付列だけ抜粋（無ければそのまま head()）
+    cols = [c for c in df_sales.columns if any(k in c for k in ("売上", "来院", "日付"))]
+    st.dataframe(df_sales[cols].head() if cols else df_sales.head(), use_container_width=True)
+# ────────────────────────────────────────────
         except Exception as e:
             add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
 
