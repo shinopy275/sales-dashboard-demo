@@ -380,12 +380,12 @@ def plot_reason_yoy(df_src, store, latest, prev):
         use_container_width=True,
     )
 
-    # ---------- 件数差分テーブル ----------
+# ---------- 件数差分テーブル ----------
 diff_tbl = (comp.set_index("カテゴリ")
                  .apply(pd.to_numeric, errors="coerce")   # 数値化
                  .fillna(0))
 
-# ① 列を追加
+# 1️⃣ 先に列を“本当に”追加する
 diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
 diff_tbl["増減率%"] = np.where(
     diff_tbl["前年"] == 0,
@@ -393,14 +393,11 @@ diff_tbl["増減率%"] = np.where(
     (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
 )
 
-# ② 追加後に列順をそろえる
+# ★ ここで columns を確認すると 4 列そろっているはず
+# st.write(diff_tbl.columns)  # → Index(['前年','今年','増減差','増減率%'], dtype=object)
+
+# 2️⃣ 追加後に順序を並び替える
 diff_tbl = diff_tbl[["前年", "今年", "増減差", "増減率%"]]
-    diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
-    diff_tbl["増減率%"] = np.where(
-        diff_tbl["前年"] == 0,
-        np.nan,
-        (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
-    )
 
     with st.expander("📄 来店動機 増減明細"):
         st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
