@@ -348,8 +348,48 @@ def plot_pivot(df_src, title):
     )
     with st.expander(f"📄 {title} 明細"):
         st.dataframe(df, use_container_width=True)
+        +# ───── 来店動機：前年比較プロット ─────
+def plot_reason_yoy(df_src, store, latest, prev):
+    """
+    store  の来店動機を (prev 年, latest 年) で横並びの棒グラフにする
+    """
+    # 年ごとに件数を集計
+    cur  = (df_src.query("店舗名 == @store & 年 == @latest")
+                 .groupby("カテゴリ", as_index=False)["件数"].sum()
+                 .rename(columns={"件数": "今年"}))
+    old  = (df_src.query("店舗名 == @store & 年 == @prev")
+                 .groupby("カテゴリ", as_index=False)["件数"].sum()
+                 .rename(columns={"件数": "前年"}))
+
+    comp = pd.merge(cur, old, on="カテゴリ", how="outer").fillna(0)
+    comp = pd.melt(comp, id_vars="カテゴリ",
+                   value_vars=["前年", "今年"],
+                   var_name="年度", value_name="件数")
+
+    # 棒グラフ
+    st.altair_chart(
+        alt.Chart(comp).mark_bar().encode(
+            x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
+            y=alt.Y("件数:Q", title="件数"),
+            xOffset="年度:N", color="年度:N",
+            tooltip=["年度", "カテゴリ", "件数"],
+        ).properties(width=400, height=300,
+                     title=f"{store} 来店動機 (前年 vs 今年)"),
+        use_container_width=True,
+    )
+
+    # 件数差分テーブル（折り畳み）
+    diff_tbl = (comp.pivot(index="カテゴリ", columns="年度", values="件数")
+                     .assign(増減差=lambda d: d["今年"] - d["前年"],
+                             増減率% = lambda d: ((d["今年"]-d["前年"])
+                                             / d["前年"].replace({0: pd.NA})*100)
+                                             .round(1)))
+    with st.expander("📄 来店動機 増減明細"):
+        st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
+
 
 plot_pivot(reason_df, "来店動機")
+plot_reason_yoy(reason_df, store, latest, prev)   # ← 追加
 plot_pivot(gender_df, "男女比率")
 plot_pivot(age_df,    "年齢比率")
 
