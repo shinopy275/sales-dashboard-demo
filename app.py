@@ -59,7 +59,34 @@ def infer_year_month(df: pd.DataFrame) -> Tuple[int, int]:
     if day.empty:
         raise ValueError("日付列がありません")
     return int(day.dt.year.mode()[0]), int(day.dt.month.mode()[0])
+# ───── 売上管理シートを読む ─────
+def read_sales_sheet(file_bytes: io.BytesIO) -> pd.DataFrame:
+    # ① ヘッダー行を自動で探す --------------- #
+    tmp = pd.read_excel(
+        file_bytes, sheet_name="売上管理", header=None, engine="openpyxl"
+    )
+    header_row = tmp[tmp.apply(
+        lambda r: r.astype(str).str.contains("日付").any(), axis=1)
+    ].index[0]
 
+    # ② 正式に読み込み ----------------------- #
+    df = pd.read_excel(
+        file_bytes, sheet_name="売上管理",
+        header=header_row, engine="openpyxl"
+    )
+
+    # ③ 行フィルタ：日付がある行＝日次データ ---- #
+    df["日付"] = pd.to_datetime(df["日付"], errors="coerce")
+    df = df.dropna(subset=["日付"])         # 合計行・空行を除外
+
+    # ④ 数値クレンジング --------------------- #
+    for col in ("総売上", "総来院数"):
+        df[col] = (df[col].astype(str)
+                         .str.replace("[▲△▲−-]", "-", regex=True)  # マイナス記号統一
+                         .str.replace("[^0-9.-]", "", regex=True)   # ¥ , など除去
+                         .replace("", "0")                         # 空→0
+                         .astype(float))
+    return df
 # ───── 患者分析シート ─────
 
 def parse_patient_analysis(f):
@@ -151,7 +178,7 @@ def load(uploaded):
         # 売上管理
         try:
             # ───── 売上管理シートを読む ─────
-            df_sales = pd.read_excel(file_bytes, sheet_name="売上管理", header=4, engine="openpyxl")
+            df_sales = read_sales_sheet(file_bytes)  
             st.write(df_sales[["総売上", "総来院数"]].dtypes)   # float でなく object なら文字列  
         except Exception as e:
             add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
