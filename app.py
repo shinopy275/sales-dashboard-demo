@@ -179,7 +179,7 @@ def load(uploaded):
         try:
             # ───── 売上管理シートを読む ─────
             df_sales = read_sales_sheet(file_bytes)  
-            st.write(df_sales[["総売上", "総来院数"]].dtypes)   # float でなく object なら文字列  
+            # st.write(df_sales[["総売上", "総来院数"]].dtypes)   # float でなく object なら文字列  
         except Exception as e:
             add_msg(f"{fname}: 売上管理読み込み失敗 ({e})"); continue
 
@@ -195,10 +195,10 @@ def load(uploaded):
         df_sales["店舗名"], df_sales["年"], df_sales["月"] = store, y, m
         sales.append(df_sales)
 
-         # ★ ファイル単位で中身を確認
-        with st.expander(f"📖 RAW {fname}"):
-            st.write(f"店舗={store}  年={y}  月={m}")
-            st.dataframe(df_sales[["日付", "総売上", "総来院数"]].head(20))
+        # ★ ファイル単位で中身を確認
+        #with st.expander(f"📖 RAW {fname}"):
+        #    st.write(f"店舗={store}  年={y}  月={m}")
+        #    st.dataframe(df_sales[["日付", "総売上", "総来院数"]].head(20))
 
         # 患者分析・LTV
         g, r, a = parse_patient_analysis(file_bytes, add_msg)
@@ -227,7 +227,7 @@ if sales_df.empty and not msgs:
 
 # メッセージ折り畳み
 if msgs:
-    with st.expander("⚠️ 解析メッセージ"):
+    with st.expander("⚠️ 読み取りファイル警告"):
         for m in msgs:
             st.markdown(f"- {m}")
 
