@@ -334,7 +334,7 @@ for label, cols, ttl, ycap in [
     )
 
 # 患者分析プロット
-
+import numpy as np   # ← plot_reason_yoy の前で一度だけ import
 def plot_pivot(df_src, title):
     df = df_src.query("店舗名 == @store & 年 == @latest").groupby("カテゴリ", as_index=False)["件数"].sum()
     if df.empty:
