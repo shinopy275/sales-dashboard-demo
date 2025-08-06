@@ -380,8 +380,8 @@ def plot_reason_yoy(df_src, store, latest, prev):
 
     # 件数差分テーブル（折り畳み）
     diff_tbl = (comp.pivot(index="カテゴリ", columns="年度", values="件数")
-                     .assign(増減差=lambda d: d["今年"] - d["前年"],
-                             増減率% = lambda d: ((d["今年"]-d["前年"])
+                     .assign("増減差"=lambda d: d["今年"] - d["前年"],
+                             "増減率%" = lambda d: ((d["今年"]-d["前年"])
                                              / d["前年"].replace({0: pd.NA})*100)
                                              .round(1)))
     with st.expander("📄 来店動機 増減明細"):
