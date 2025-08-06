@@ -364,11 +364,16 @@ def plot_reason_yoy(df_src, store, latest, prev):
     comp_melt = comp.melt(id_vars="カテゴリ",
                           value_vars=["前年", "今年"],
                           var_name="年度", value_name="件数")
-    st.altair_chart(
-        alt.Chart(comp_melt).mark_bar().encode(
+        st.altair_chart(
+       alt.Chart(comp_melt).mark_bar().encode(
             x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
             y="件数:Q",
-            xOffset="年度:N", color="年度:N",
+            # ★ 並びを明示的に固定 ★
+            xOffset=alt.Offset("年度:N",
+                               scale=alt.Scale(domain=["前年", "今年"])),
+            color=alt.Color("年度:N",
+                            scale=alt.Scale(domain=["前年", "今年"],
+                                            range=['#4e79a7', '#f28e2b'])),  # 色も任意
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
                      title=f"{store} 来店動機 (前年 vs 今年)"),
@@ -379,7 +384,8 @@ def plot_reason_yoy(df_src, store, latest, prev):
     diff_tbl = (comp.set_index("カテゴリ")
                      .apply(pd.to_numeric, errors="coerce")   # ★ 数値化ここで確実に
                      .fillna(0))
-
+    # ★ 列順を「前年 → 今年 → 増減差 → 増減率%」に統一
+    diff_tbl = diff_tbl[["前年", "今年", "増減差", "増減率%"]]
     diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
     diff_tbl["増減率%"] = np.where(
         diff_tbl["前年"] == 0,
