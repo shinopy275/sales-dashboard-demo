@@ -364,7 +364,7 @@ def plot_reason_yoy(df_src, store, latest, prev):
     comp_melt = comp.melt(id_vars="カテゴリ",
                           value_vars=["前年", "今年"],
                           var_name="年度", value_name="件数")
-        st.altair_chart(
+    st.altair_chart(
        alt.Chart(comp_melt).mark_bar().encode(
             x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
             y="件数:Q",
