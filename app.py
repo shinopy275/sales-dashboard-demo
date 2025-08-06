@@ -350,27 +350,24 @@ def plot_pivot(df_src, title):
         st.dataframe(df, use_container_width=True)
         # ───── 来店動機：前年比較プロット ─────
 def plot_reason_yoy(df_src, store, latest, prev):
-    """
-    store  の来店動機を (prev 年, latest 年) で横並びの棒グラフにする
-    """
-    # 年ごとに件数を集計
-    cur  = (df_src.query("店舗名 == @store & 年 == @latest")
-                 .groupby("カテゴリ", as_index=False)["件数"].sum()
-                 .rename(columns={"件数": "今年"}))
-    old  = (df_src.query("店舗名 == @store & 年 == @prev")
-                 .groupby("カテゴリ", as_index=False)["件数"].sum()
-                 .rename(columns={"件数": "前年"}))
+    # ---------- 集計 ----------
+    cur = (df_src.query("店舗名 == @store & 年 == @latest")
+                    .groupby("カテゴリ", as_index=False)["件数"].sum()
+                    .rename(columns={"件数": "今年"}))
+    old = (df_src.query("店舗名 == @store & 年 == @prev")
+                    .groupby("カテゴリ", as_index=False)["件数"].sum()
+                    .rename(columns={"件数": "前年"}))
 
     comp = pd.merge(cur, old, on="カテゴリ", how="outer").fillna(0)
-    comp = pd.melt(comp, id_vars="カテゴリ",
-                   value_vars=["前年", "今年"],
-                   var_name="年度", value_name="件数")
 
-    # 棒グラフ
+    # ---------- グラフ用 ----------
+    comp_melt = comp.melt(id_vars="カテゴリ",
+                          value_vars=["前年", "今年"],
+                          var_name="年度", value_name="件数")
     st.altair_chart(
-        alt.Chart(comp).mark_bar().encode(
+        alt.Chart(comp_melt).mark_bar().encode(
             x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
-            y=alt.Y("件数:Q", title="件数"),
+            y="件数:Q",
             xOffset="年度:N", color="年度:N",
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
@@ -378,19 +375,18 @@ def plot_reason_yoy(df_src, store, latest, prev):
         use_container_width=True,
     )
 
-    # 件数差分テーブル（折り畳み）
-        diff_tbl = (
-        comp.pivot(index="カテゴリ", columns="年度", values="件数")
-            .fillna(0)               # NaN→0
-            .astype(float)           # ★ ここで数値化 ★
-            .assign(**{
-                "増減差":  lambda d: d["今年"] - d["前年"],
-                "増減率%": lambda d: (
-                    (d["今年"] - d["前年"])
-                    / d["前年"].where(d["前年"] != 0) * 100
-                ).round(1)
-            })
+    # ---------- 件数差分テーブル ----------
+    diff_tbl = (comp.set_index("カテゴリ")
+                     .apply(pd.to_numeric, errors="coerce")   # ★ 数値化ここで確実に
+                     .fillna(0))
+
+    diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
+    diff_tbl["増減率%"] = np.where(
+        diff_tbl["前年"] == 0,
+        np.nan,
+        (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
     )
+
     with st.expander("📄 来店動機 増減明細"):
         st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
 
