@@ -348,7 +348,7 @@ def plot_pivot(df_src, title):
     )
     with st.expander(f"📄 {title} 明細"):
         st.dataframe(df, use_container_width=True)
-        +# ───── 来店動機：前年比較プロット ─────
+        # ───── 来店動機：前年比較プロット ─────
 def plot_reason_yoy(df_src, store, latest, prev):
     """
     store  の来店動機を (prev 年, latest 年) で横並びの棒グラフにする
