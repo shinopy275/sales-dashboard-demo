@@ -383,6 +383,7 @@ def plot_reason_yoy(df_src, store, latest, prev):
                             scale=alt.Scale(
                                 domain=[str(prev), str(latest)],
                                 range=["#4e79a7", "#a0cbe8"]      # 濃青／淡青
+                            )),
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
                      title=f"{store} 来店動機 (前年 vs 今年)"),
