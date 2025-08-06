@@ -372,8 +372,7 @@ def plot_reason_yoy(df_src, store, latest, prev):
             xOffset=alt.XOffset("年度:N",
                                scale=alt.Scale(domain=["前年", "今年"])),
             color=alt.Color("年度:N",
-                            scale=alt.Scale(domain=["前年", "今年"],
-                                            range=['#4e79a7', '#f28e2b'])),  # 色も任意
+                            scale=alt.Scale(domain=["前年", "今年"]),  # 色も任意
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
                      title=f"{store} 来店動機 (前年 vs 今年)"),
@@ -392,14 +391,12 @@ def plot_reason_yoy(df_src, store, latest, prev):
         (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
     )
     
-diff_tbl = diff_tbl.reindex(
-    columns=["前年", "今年", "増減差", "増減率%"] + [c for c in diff_tbl.columns if c not in ("前年","今年","増減差","増減率%")]
-)
+
     with st.expander("📄 来店動機 増減明細"):
         st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
 
 
-plot_pivot(reason_df, "来店動機")
+# plot_pivot(reason_df, "来店動機")
 plot_reason_yoy(reason_df, store, latest, prev)   # ← 追加
 plot_pivot(gender_df, "男女比率")
 plot_pivot(age_df,    "年齢比率")
