@@ -103,7 +103,7 @@ def parse_patient_analysis(f, add_msg):
         if "患者分析" not in xls.sheet_names:
             raise ValueError("シートなし")
         sheet = xls.parse("患者分析", header=None)
-        except Exception:
+    except Exception:
         add_msg(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
         return zero(C_GENDER), zero(C_REASON), zero(C_AGE)
 
@@ -114,7 +114,7 @@ def parse_patient_analysis(f, add_msg):
         r = mask.idxmax()
         # データ行が足りない場合は 0
         if r + 2 >= len(sheet):
-            st.warning(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
+            add_msg(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
             return zero(cats)
         header = sheet.iloc[r + 1]
         vals   = sheet.iloc[r + 2]
