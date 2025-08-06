@@ -361,19 +361,28 @@ def plot_reason_yoy(df_src, store, latest, prev):
     comp = pd.merge(cur, old, on="カテゴリ", how="outer").fillna(0)
 
     # ---------- グラフ用 ----------
-    comp_melt = comp.melt(id_vars="カテゴリ",
-                          value_vars=["前年", "今年"],
-                          var_name="年度", value_name="件数")
+        # 「前年」「今年」を実際の年にリネームしてから melt
+    comp_for_plot = comp.rename(columns={
+        "前年": str(prev),     # 例）"2024"
+        "今年": str(latest)    # 例）"2025"
+    })
+
+    comp_melt = comp_for_plot.melt(
+        id_vars="カテゴリ",
+        value_vars=[str(prev), str(latest)],
+        var_name="年度", value_name="件数"
+    )
     st.altair_chart(
        alt.Chart(comp_melt).mark_bar().encode(
             x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
             y="件数:Q",
-            # ★ 並びを明示的に固定 ★
+                        # ★ 並び・色を実年で固定 ★
             xOffset=alt.XOffset("年度:N",
-                               scale=alt.Scale(domain=["前年", "今年"])),
-                       color=alt.Color("年度:N",
-                            scale=alt.Scale(domain=["前年", "今年"],
-                                            range=['#4e79a7', '#f28e2b'])),  # 色も任意
+                               scale=alt.Scale(domain=[str(prev), str(latest)])),
+            color=alt.Color("年度:N",
+                            scale=alt.Scale(
+                                domain=[str(prev), str(latest)],
+                                range=["#4e79a7", "#a0cbe8"]      # 濃青／淡青
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
                      title=f"{store} 来店動機 (前年 vs 今年)"),
