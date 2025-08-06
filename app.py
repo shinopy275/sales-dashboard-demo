@@ -391,7 +391,10 @@ def plot_reason_yoy(df_src, store, latest, prev):
         np.nan,
         (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
     )
-
+    
+diff_tbl = diff_tbl.reindex(
+    columns=["前年", "今年", "増減差", "増減率%"] + [c for c in diff_tbl.columns if c not in ("前年","今年","増減差","増減率%")]
+)
     with st.expander("📄 来店動機 増減明細"):
         st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
 
