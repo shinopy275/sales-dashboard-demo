@@ -371,8 +371,6 @@ def plot_reason_yoy(df_src, store, latest, prev):
             # ★ 並びを明示的に固定 ★
             xOffset=alt.XOffset("年度:N",
                                scale=alt.Scale(domain=["前年", "今年"])),
-            color=alt.Color("年度:N",
-                            scale=alt.Scale(domain=["前年", "今年"]),  # 色も任意
             tooltip=["年度", "カテゴリ", "件数"],
         ).properties(width=400, height=300,
                      title=f"{store} 来店動機 (前年 vs 今年)"),
