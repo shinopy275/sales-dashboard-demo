@@ -394,7 +394,7 @@ diff_tbl["増減率%"] = np.where(
 )
 
 # ★ ここで columns を確認すると 4 列そろっているはず
-# st.write(diff_tbl.columns)  # → Index(['前年','今年','増減差','増減率%'], dtype=object)
+ st.write(diff_tbl.columns)  # → Index(['前年','今年','増減差','増減率%'], dtype=object)
 
 # 2️⃣ 追加後に順序を並び替える
 diff_tbl = diff_tbl[["前年", "今年", "増減差", "増減率%"]]
