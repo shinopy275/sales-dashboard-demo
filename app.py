@@ -89,7 +89,7 @@ def read_sales_sheet(file_bytes: io.BytesIO) -> pd.DataFrame:
     return df
 # ───── 患者分析シート ─────
 
-def parse_patient_analysis(f):
+def parse_patient_analysis(f, add_msg):
     """患者分析シートを抽出。無い/欠落時は 0 データで返す"""
     # 決め打ちカテゴリ
     C_GENDER = ["男性", "女性"]
@@ -103,8 +103,8 @@ def parse_patient_analysis(f):
         if "患者分析" not in xls.sheet_names:
             raise ValueError("シートなし")
         sheet = xls.parse("患者分析", header=None)
-    except Exception:
-        st.warning(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
+        except Exception:
+        add_msg(f"{f.name}: 患者分析シートが見つかりません - 0 件として処理します")
         return zero(C_GENDER), zero(C_REASON), zero(C_AGE)
 
     def grab(keyword: str, rng: slice | None, cats: list[str]):
@@ -201,7 +201,7 @@ def load(uploaded):
             st.dataframe(df_sales[["日付", "総売上", "総来院数"]].head(20))
 
         # 患者分析・LTV
-        g, r, a = parse_patient_analysis(file_bytes)
+        g, r, a = parse_patient_analysis(file_bytes, add_msg)
         for df_, lst in ((g, genders), (r, reasons), (a, ages)):
             if not df_.empty:
                 df_["店舗名"], df_["年"], df_["月"] = store, y, m
