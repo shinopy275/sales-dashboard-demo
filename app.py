@@ -348,69 +348,61 @@ def plot_pivot(df_src, title):
     )
     with st.expander(f"📄 {title} 明細"):
         st.dataframe(df, use_container_width=True)
-        # ───── 来店動機：前年比較プロット ─────
-def plot_reason_yoy(df_src, store, latest, prev):
-    # ---------- 集計 ----------
+# ───── 任意カテゴリ：前年比較プロット ─────
+def plot_cat_yoy(df_src, store, latest, prev, title):
+    """
+    df_src : reason_df / gender_df / age_df …
+    title  : グラフ・テーブルの見出し
+    """
     cur = (df_src.query("店舗名 == @store & 年 == @latest")
-                    .groupby("カテゴリ", as_index=False)["件数"].sum()
-                    .rename(columns={"件数": "今年"}))
+                 .groupby("カテゴリ", as_index=False)["件数"].sum()
+                 .rename(columns={"件数": "今年"}))
     old = (df_src.query("店舗名 == @store & 年 == @prev")
-                    .groupby("カテゴリ", as_index=False)["件数"].sum()
-                    .rename(columns={"件数": "前年"}))
-
+                 .groupby("カテゴリ", as_index=False)["件数"].sum()
+                 .rename(columns={"件数": "前年"}))
     comp = pd.merge(cur, old, on="カテゴリ", how="outer").fillna(0)
 
-    # ---------- グラフ用 ----------
-        # 「前年」「今年」を実際の年にリネームしてから melt
-    comp_for_plot = comp.rename(columns={
-        "前年": str(prev),     # 例）"2024"
-        "今年": str(latest)    # 例）"2025"
-    })
+    # ---------- グラフ ----------
+    comp_melt = (comp.rename(columns={"前年": str(prev), "今年": str(latest)})
+                       .melt(id_vars="カテゴリ",
+                             value_vars=[str(prev), str(latest)],
+                             var_name="年度", value_name="件数"))
 
-    comp_melt = comp_for_plot.melt(
-        id_vars="カテゴリ",
-        value_vars=[str(prev), str(latest)],
-        var_name="年度", value_name="件数"
+    chart = (
+        alt.Chart(comp_melt)
+           .mark_bar()
+           .encode(
+               x=alt.X("カテゴリ:N", sort="-y", title=title),
+               y="件数:Q",
+               xOffset=alt.XOffset("年度:N",
+                                   scale=alt.Scale(domain=[str(prev), str(latest)])),
+               color=alt.Color("年度:N",
+                               scale=alt.Scale(domain=[str(prev), str(latest)],
+                                               range=["#4e79a7", "#a0cbe8"])),
+               tooltip=["年度", "カテゴリ", "件数"],
+           )
+           .properties(width=400, height=300,
+                       title=f"{store} {title} ({prev} vs {latest})")
     )
-    st.altair_chart(
-       alt.Chart(comp_melt).mark_bar().encode(
-            x=alt.X("カテゴリ:N", sort="-y", title="来店動機"),
-            y="件数:Q",
-                        # ★ 並び・色を実年で固定 ★
-            xOffset=alt.XOffset("年度:N",
-                               scale=alt.Scale(domain=[str(prev), str(latest)])),
-            color=alt.Color("年度:N",
-                            scale=alt.Scale(
-                                domain=[str(prev), str(latest)],
-                                range=["#4e79a7", "#a0cbe8"]      # 濃青／淡青
-                            )),
-            tooltip=["年度", "カテゴリ", "件数"],
-        ).properties(width=400, height=300,
-                     title=f"{store} 来店動機 (前年 vs 今年)"),
-        use_container_width=True,
-    )
+    st.altair_chart(chart, use_container_width=True)
 
- # ---------- 件数差分テーブル ----------
+    # ---------- 増減テーブル ----------
     diff_tbl = (comp.set_index("カテゴリ")
-                     .apply(pd.to_numeric, errors="coerce")   # ★ 数値化ここで確実に
+                     .apply(pd.to_numeric, errors="coerce")
                      .fillna(0))
-
     diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
     diff_tbl["増減率%"] = np.where(
-        diff_tbl["前年"] == 0,
-        np.nan,
+        diff_tbl["前年"] == 0, np.nan,
         (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
     )
-    
-
-    with st.expander("📄 来店動機 増減明細"):
+    with st.expander(f"📄 {title} 増減明細"):
         st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
 
 
-# plot_pivot(reason_df, "来店動機")
-plot_reason_yoy(reason_df, store, latest, prev)   # ← 追加
-plot_pivot(gender_df, "男女比率")
-plot_pivot(age_df,    "年齢比率")
+
+plot_cat_yoy(reason_df, store, latest, prev, "来店動機")
+plot_cat_yoy(gender_df, store, latest, prev, "男女比率")
+plot_cat_yoy(age_df,    store, latest, prev, "年齢比率")
 
 with st.expander("📄 月別比較データ（店舗）"):
     st.dataframe(sty(ss_full), use_container_width=True)
