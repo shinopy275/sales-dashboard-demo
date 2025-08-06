@@ -380,8 +380,20 @@ def plot_reason_yoy(df_src, store, latest, prev):
         use_container_width=True,
     )
 
-# ---------- 件数差分テーブル ----------
+ # ---------- 件数差分テーブル ----------
+    diff_tbl = (comp.set_index("カテゴリ")
+                     .apply(pd.to_numeric, errors="coerce")   # ★ 数値化ここで確実に
+                     .fillna(0))
 
+    diff_tbl["増減差"]  = diff_tbl["今年"] - diff_tbl["前年"]
+    diff_tbl["増減率%"] = np.where(
+        diff_tbl["前年"] == 0,
+        np.nan,
+        (diff_tbl["増減差"] / diff_tbl["前年"] * 100).round(1)
+    )
+
+    with st.expander("📄 来店動機 増減明細"):
+        st.dataframe(sty(diff_tbl.reset_index()), use_container_width=True)
 
 
 plot_pivot(reason_df, "来店動機")
